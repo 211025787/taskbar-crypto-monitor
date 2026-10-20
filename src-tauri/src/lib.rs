@@ -265,6 +265,29 @@ pub fn run() {
             // 启动 Z 序看门狗：对抗 Win11 任务栏的周期性置顶重断言
             taskbar::spawn_zorder_watchdog(hwnd);
 
+            // 显式设置两个窗口的图标：wry 仅设置小图标（ICON_SMALL），
+            // 任务栏按钮取 ICON_BIG，缺失时回退 exe 资源图标并受系统
+            // 图标缓存影响（可能长期显示旧图），故补设 BIG 与类图标
+            if let Ok(icon) = tauri::image::Image::from_bytes(include_bytes!("../icons/icon.png")) {
+                let _ = window.set_icon(icon.clone());
+                taskbar::set_taskbar_icon(
+                    hwnd,
+                    icon.rgba(),
+                    icon.width() as i32,
+                    icon.height() as i32,
+                );
+                if let Some(settings) = app.get_webview_window("settings") {
+                    let _ = settings.set_icon(icon.clone());
+                    if let Ok(settings_hwnd) = settings.hwnd() {
+                        taskbar::set_taskbar_icon(
+                            settings_hwnd.0 as windows_sys::Win32::Foundation::HWND,
+                            icon.rgba(),
+                            icon.width() as i32,
+                            icon.height() as i32,
+                        );
+                    }
+                }
+            }
 
             Ok(())
         })

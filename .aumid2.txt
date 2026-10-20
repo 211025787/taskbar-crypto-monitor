@@ -1,0 +1,11 @@
+﻿PID: 228732
+hwnd=10623176 可见=True 类='Tauri Window' 标题='Taskbar Crypto Monitor' AUMID='HR=0x80004002'
+hwnd=12850392 可见=True 类='com.taskbar.crypto.monitor-sic' 标题='com.taskbar.crypto.monitor-siw' AUMID='HR=0x80004002'
+hwnd=45551194 可见=True 类='Tao Thread Event Target' 标题='' AUMID='HR=0x80004002'
+hwnd=1251518 可见=True 类='Tauri Window' 标题='设置 - Taskbar Crypto Monitor' AUMID='HR=0x80004002'
+hwnd=53417096 可见=False 类='MSCTFIME UI' 标题='MSCTFIME UI' AUMID='HR=0x80004002'
+hwnd=55449604 可见=False 类='IME' 标题='Default IME' AUMID='HR=0x80004002'
+--- lnk AUMID ---
+开始菜单 lnk: HR=0x80004002
+--- HKCU AppID 注册表 ---
+  无 taskbar/crypto 相关 AppID 键

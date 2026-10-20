@@ -1,0 +1,19 @@
+﻿窗口 hwnd=10623176 类='Tauri Window' 标题='Taskbar Crypto Monitor' AUMID='HR=0x80004002'
+窗口 hwnd=12850392 类='com.taskbar.crypto.monitor-sic' 标题='com.taskbar.crypto.monitor-siw' AUMID='HR=0x80004002'
+窗口 hwnd=45551194 类='Tao Thread Event Target' 标题='' AUMID='HR=0x80004002'
+窗口 hwnd=1251518 类='Tauri Window' 标题='设置 - Taskbar Crypto Monitor' AUMID='HR=0x80004002'
+窗口 hwnd=53417096 类='MSCTFIME UI' 标题='MSCTFIME UI' AUMID='HR=0x80004002'
+窗口 hwnd=55449604 类='IME' 标题='Default IME' AUMID='HR=0x80004002'
+窗口 hwnd=10623176 类='Tauri Window' 标题='Taskbar Crypto Monitor' AUMID='HR=0x80004002'
+窗口 hwnd=12850392 类='com.taskbar.crypto.monitor-sic' 标题='com.taskbar.crypto.monitor-siw' AUMID='HR=0x80004002'
+窗口 hwnd=45551194 类='Tao Thread Event Target' 标题='' AUMID='HR=0x80004002'
+窗口 hwnd=1251518 类='Tauri Window' 标题='设置 - Taskbar Crypto Monitor' AUMID='HR=0x80004002'
+窗口 hwnd=53417096 类='MSCTFIME UI' 标题='MSCTFIME UI' AUMID='HR=0x80004002'
+窗口 hwnd=55449604 类='IME' 标题='Default IME' AUMID='HR=0x80004002'
+--- Taskband 注册表 ---
+Taskband 键存在，值: FavoritesResolve, Favorites, FavoritesChanges, FavoritesVersion, FavoritesRemovedChanges
+TrayIconCache 子键数: 0
+--- 快捷方式 ---
+  True : C:\Users\wu211\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Taskbar Crypto Monitor.lnk
+  False : C:\Users\wu211\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Taskbar Crypto Monitor\Taskbar Crypto Monitor.lnk
+  False : C:\Users\wu211\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar\Taskbar Crypto Monitor.lnk

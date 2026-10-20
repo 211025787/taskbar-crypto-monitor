@@ -1,0 +1,16 @@
+﻿=== D:\ipyProject\ai-contract\src-tauri\target\release\taskbar-crypto-monitor.exe ===
+请求16 像素读取失败
+请求20 像素读取失败
+请求24 像素读取失败
+请求32 像素读取失败
+请求48 像素读取失败
+请求64 像素读取失败
+请求256 像素读取失败
+=== C:\Users\wu211\AppData\Local\Taskbar Crypto Monitor\taskbar-crypto-monitor.exe ===
+请求16 像素读取失败
+请求20 像素读取失败
+请求24 像素读取失败
+请求32 像素读取失败
+请求48 像素读取失败
+请求64 像素读取失败
+请求256 像素读取失败

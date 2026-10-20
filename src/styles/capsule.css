@@ -30,13 +30,17 @@ body,
     padding: 0 12px;
     /* 全透明底：文字与曲线直接浮于任务栏之上 */
     background: transparent;
-    color: #f3f4f6;
-    /* 深色描边阴影保证在任意任务栏底色上的可读性 */
-    text-shadow:
-        0 1px 3px rgba(0, 0, 0, 0.9),
-        0 0 10px rgba(0, 0, 0, 0.55);
     /* 入场淡入（无轮廓位移，避免与透明底冲突） */
     animation: ycs-capsule-in 360ms ease-out both;
+}
+
+/* 涨跌状态统一着色：全部文字与趋势线同色（绿涨红跌），颜色由根元素继承 */
+.ycs-capsule--up {
+    color: #4ade80;
+}
+
+.ycs-capsule--down {
+    color: #f87171;
 }
 
 @keyframes ycs-capsule-in {
@@ -50,39 +54,29 @@ body,
 
 /* ===== 字段排版（尺寸跟随缩放系数） ===== */
 
-/* 合约名：小字号大写字距徽标 */
+/* 合约名：小字号大写字距徽标（颜色继承根元素涨跌状态） */
 .ycs-symbol {
     font-size: calc(11px * var(--ycs-scale, 1));
     font-weight: 600;
     letter-spacing: 0.4px;
-    color: rgba(226, 232, 240, 0.85);
     white-space: nowrap;
 }
 
-/* 最新价：主视觉，表格数字对齐避免跳动 */
+/* 最新价：主视觉，表格数字对齐避免跳动（颜色继承根元素涨跌状态） */
 .ycs-price {
     font-size: calc(14px * var(--ycs-scale, 1));
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.2px;
-    color: #ffffff;
     white-space: nowrap;
 }
 
-/* 涨跌幅：绿涨红跌 */
+/* 涨跌幅（颜色继承根元素涨跌状态） */
 .ycs-change {
     font-size: calc(12px * var(--ycs-scale, 1));
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
-}
-
-.ycs-change--up {
-    color: #4ade80;
-}
-
-.ycs-change--down {
-    color: #f87171;
 }
 
 /* ===== Sparkline 迷你趋势图 ===== */

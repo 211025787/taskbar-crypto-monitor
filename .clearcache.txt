@@ -1,0 +1,20 @@
+﻿应用已停止
+Explorer 已停止
+删除: C:\Users\wu211\AppData\Local\IconCache.db => 成功
+删除: C:\Users\wu211\AppData\Local\Microsoft\Windows\Explorer\iconcache_1280.db => 成功
+删除: C:\Users\wu211\AppData\Local\Microsoft\Windows\Explorer\iconcache_16.db => 成功
+删除: C:\Users\wu211\AppData\Local\Microsoft\Windows\Explorer\iconcache_1920.db => 成功
+删除: C:\Users\wu211\AppData\Local\Microsoft\Windows\Explorer\iconcache_256.db => 成功
+删除: C:\Users\wu211\AppData\Local\Microsoft\Windows\Explorer\iconcache_2560.db => 成功
+删除: C:\Users\wu211\AppData\Local\Microsoft\Windows\Explorer\iconcache_32.db => 成功
+删除: C:\Users\wu211\AppData\Local\Microsoft\Windows\Explorer\iconcache_48.db => 成功
+删除: C:\Users\wu211\AppData\Local\Microsoft\Windows\Explorer\iconcache_768.db => 成功
+删除: C:\Users\wu211\AppData\Local\Microsoft\Windows\Explorer\iconcache_96.db => 成功
+删除: C:\Users\wu211\AppData\Local\Microsoft\Windows\Explorer\iconcache_custom_stream.db => 成功
+删除: C:\Users\wu211\AppData\Local\Microsoft\Windows\Explorer\iconcache_exif.db => 成功
+删除: C:\Users\wu211\AppData\Local\Microsoft\Windows\Explorer\iconcache_idx.db => 成功
+删除: C:\Users\wu211\AppData\Local\Microsoft\Windows\Explorer\iconcache_sr.db => 成功
+删除: C:\Users\wu211\AppData\Local\Microsoft\Windows\Explorer\iconcache_wide.db => 成功
+删除: C:\Users\wu211\AppData\Local\Microsoft\Windows\Explorer\iconcache_wide_alternate.db => 成功
+Explorer 已重启
+应用已重启

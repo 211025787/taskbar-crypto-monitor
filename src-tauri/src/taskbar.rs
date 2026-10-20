@@ -5,10 +5,14 @@
 //! 以 HWND_TOPMOST 层级放置到任务栏左半区空白带，实现"覆盖在任务栏上"。
 
 use windows_sys::Win32::Foundation::{HWND, RECT};
+use windows_sys::Win32::Graphics::Gdi::{
+    BITMAPINFO, BITMAPINFOHEADER, BI_RGB, CreateBitmap, CreateDIBSection, DeleteObject, DIB_RGB_COLORS, RGBQUAD,
+};
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    FindWindowW, GetDesktopWindow, GetWindow, GetWindowLongPtrW, GetWindowRect,
-    SetWindowLongPtrW, SetWindowPos, GW_CHILD, GW_HWNDNEXT, GWL_EXSTYLE, HWND_TOPMOST,
-    SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW, WS_EX_NOACTIVATE,
+    CreateIconIndirect, FindWindowW, GetDesktopWindow, GetWindow, GetWindowLongPtrW, GetWindowRect, ICONINFO,
+    ICON_BIG, ICON_SMALL2, SendMessageW, SetClassLongPtrW, SetWindowLongPtrW, SetWindowPos, GCL_HICON, GCL_HICONSM,
+    GW_CHILD, GW_HWNDNEXT, GWL_EXSTYLE, HWND_TOPMOST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW,
+    WM_SETICON, WS_EX_NOACTIVATE,
 };
 
 /// 任务栏几何信息（屏幕物理像素坐标）
@@ -26,6 +30,72 @@ pub struct TaskbarGeometry {
 /// 将 &str 编码为以 NUL 结尾的 UTF-16 宽字符串（Win32 API 入参格式）
 fn to_wide(value: &str) -> Vec<u16> {
     value.encode_utf16().chain(std::iter::once(0)).collect()
+}
+
+/// 为窗口补设任务栏按钮使用的大图标（ICON_BIG）与类图标
+///
+/// wry 的 set_window_icon 仅设置 ICON_SMALL/ICON_SMALL2，而任务栏按钮与
+/// Alt-Tab 取 ICON_BIG，缺失时回退 exe 资源图标——该路径受系统图标缓存
+/// 影响可能长期显示旧图。此函数用原始 RGBA 数据直接构造 HICON 显式
+/// 下发，绕开图标缓存。
+pub fn set_taskbar_icon(hwnd: HWND, rgba: &[u8], width: i32, height: i32) {
+    unsafe {
+        // 32bpp ARGB 自顶向下 DIB：biHeight 取负值
+        let bmi = BITMAPINFO {
+            bmiHeader: BITMAPINFOHEADER {
+                biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
+                biWidth: width,
+                biHeight: -height,
+                biPlanes: 1,
+                biBitCount: 32,
+                biCompression: BI_RGB,
+                biSizeImage: 0,
+                biXPelsPerMeter: 0,
+                biYPelsPerMeter: 0,
+                biClrUsed: 0,
+                biClrImportant: 0,
+            },
+            bmiColors: [RGBQUAD { rgbBlue: 0, rgbGreen: 0, rgbRed: 0, rgbReserved: 0 }],
+        };
+        let mut bits: *mut core::ffi::c_void = std::ptr::null_mut();
+        let color = CreateDIBSection(
+            std::ptr::null_mut(),
+            &bmi,
+            DIB_RGB_COLORS,
+            &mut bits,
+            std::ptr::null_mut(),
+            0,
+        );
+        if color.is_null() || bits.is_null() {
+            return;
+        }
+        // RGBA → BGRA 逐像素换序写入 DIB（GDI 32bpp 位图字节序为 BGRA）
+        let pixels = bits as *mut u8;
+        for i in 0..(width as usize * height as usize) {
+            let src = &rgba[i * 4..i * 4 + 4];
+            *pixels.add(i * 4) = src[2];
+            *pixels.add(i * 4 + 1) = src[1];
+            *pixels.add(i * 4 + 2) = src[0];
+            *pixels.add(i * 4 + 3) = src[3];
+        }
+        // 单色空掩码：32bpp 图标的透明度全部由 alpha 通道承载
+        let mask = CreateBitmap(width, height, 1, 1, std::ptr::null());
+        let info = ICONINFO { fIcon: 1, xHotspot: 0, yHotspot: 0, hbmMask: mask, hbmColor: color };
+        let hicon = CreateIconIndirect(&info);
+        // CreateIconIndirect 内部复制位图资源，输入位图立即释放
+        DeleteObject(color);
+        DeleteObject(mask);
+        if hicon.is_null() {
+            return;
+        }
+        // ICON_BIG：任务栏按钮与 Alt-Tab；ICON_SMALL2：任务栏备用小尺寸
+        SendMessageW(hwnd, WM_SETICON, ICON_BIG as usize, hicon as isize);
+        SendMessageW(hwnd, WM_SETICON, ICON_SMALL2 as usize, hicon as isize);
+        // 类图标兜底：窗口未响应 WM_GETICON 时系统回退使用的图标槽位
+        SetClassLongPtrW(hwnd, GCL_HICON as i32, hicon as isize);
+        SetClassLongPtrW(hwnd, GCL_HICONSM as i32, hicon as isize);
+        // HICON 所有权已移交窗口与窗口类，无需 DestroyIcon
+    }
 }
 
 /// 探测主任务栏（Shell_TrayWnd）的屏幕矩形；任务栏不可见或探测失败时返回 None

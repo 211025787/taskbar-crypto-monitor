@@ -56,6 +56,8 @@ export default function App() {
     const [trend, setTrend] = useState<TrendPoint[]>([]);
     /** 切换合约时清空趋势缓冲的标记（在事件回调内区分新旧合约数据） */
     const trendSymbolRef = useRef("");
+    /** 内容隐藏开关：左键点击胶囊切换；隐藏时透明窗口仍在，点击即恢复显示 */
+    const [hidden, setHidden] = useState(false);
 
     useEffect(() => {
         // 初始加载已保存配置（无存档时 Rust 侧返回默认值），并登记初始合约名
@@ -102,6 +104,11 @@ export default function App() {
         invoke("show_capsule_menu").catch(() => undefined);
     };
 
+    /** 左键胶囊：切换内容显示/隐藏（不挂 data-tauri-drag-region，窗口位置由 Rust 统一管理） */
+    const handleClick = () => {
+        setHidden((value) => !value);
+    };
+
     // 将缩放系数注入 CSS 变量，供字号/间距/图形尺寸的 calc 表达式使用
     const capsuleStyle = { "--ycs-scale": String(config.scale) } as CSSProperties;
 
@@ -113,42 +120,34 @@ export default function App() {
         <div
             className={`ycs-capsule ${isUp ? "ycs-capsule--up" : "ycs-capsule--down"}`}
             style={capsuleStyle}
+            onClick={handleClick}
             onContextMenu={handleContextMenu}
-            data-tauri-drag-region
         >
-            {config.showSymbol && (
-                <span className="ycs-symbol" data-tauri-drag-region>
-                    {config.symbol}
-                </span>
+            {!hidden && (
+                <>
+                    {config.showSymbol && <span className="ycs-symbol">{config.symbol}</span>}
+                    {config.showPrice && <span className="ycs-price">{ticker ? formatPrice(ticker.price) : "—"}</span>}
+                    {config.showChange && (
+                        <span className="ycs-change">{ticker ? `${isUp ? "+" : ""}${ticker.changePercent.toFixed(2)}%` : "—"}</span>
+                    )}
+                    {config.showSparkline && (
+                        <svg
+                            className="ycs-sparkline"
+                            viewBox={`0 0 ${SPARK_VB_WIDTH} ${SPARK_VB_HEIGHT}`}
+                            preserveAspectRatio="none"
+                        >
+                            <defs>
+                                <linearGradient id="ycs-spark-area" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor={isUp ? "#34d399" : "#f87171"} stopOpacity="0.35" />
+                                    <stop offset="100%" stopColor={isUp ? "#34d399" : "#f87171"} stopOpacity="0" />
+                                </linearGradient>
+                            </defs>
+                            {areaPath && <path className="ycs-sparkline__area" d={areaPath} />}
+                            {polyline && <polyline className="ycs-sparkline__line" points={polyline} />}
+                        </svg>
+                    )}
+                </>
             )}
-            {config.showPrice && (
-                <span className="ycs-price" data-tauri-drag-region>
-                    {ticker ? formatPrice(ticker.price) : "—"}
-                </span>
-            )}
-            {config.showChange && (
-                <span className={`ycs-change ${isUp ? "ycs-change--up" : "ycs-change--down"}`} data-tauri-drag-region>
-                    {ticker ? `${isUp ? "+" : ""}${ticker.changePercent.toFixed(2)}%` : "—"}
-                </span>
-            )}
-            {config.showSparkline && (
-                <svg
-                    className="ycs-sparkline"
-                    viewBox={`0 0 ${SPARK_VB_WIDTH} ${SPARK_VB_HEIGHT}`}
-                    preserveAspectRatio="none"
-                    data-tauri-drag-region
-                >
-                    <defs>
-                        <linearGradient id="ycs-spark-area" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={isUp ? "#34d399" : "#f87171"} stopOpacity="0.35" />
-                            <stop offset="100%" stopColor={isUp ? "#34d399" : "#f87171"} stopOpacity="0" />
-                        </linearGradient>
-                    </defs>
-                    {areaPath && <path className="ycs-sparkline__area" d={areaPath} />}
-                    {polyline && <polyline className="ycs-sparkline__line" points={polyline} />}
-                </svg>
-            )}
-
         </div>
     );
 }

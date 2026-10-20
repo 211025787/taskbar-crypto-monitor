@@ -1,0 +1,6 @@
+﻿=== D:\ipyProject\ai-contract\src-tauri\target\release\taskbar-crypto-monitor.exe ===
+LARGE(32): 32x32 总1024 暗0(0%) 蓝995(97%) 透明24(2%)
+SMALL(16): 16x16 总256 暗0(0%) 蓝251(98%) 透明4(1%)
+=== C:\Users\wu211\AppData\Local\Taskbar Crypto Monitor\taskbar-crypto-monitor.exe ===
+LARGE(32): 32x32 总1024 暗0(0%) 蓝995(97%) 透明24(2%)
+SMALL(16): 16x16 总256 暗0(0%) 蓝251(98%) 透明4(1%)

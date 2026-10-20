@@ -15,7 +15,8 @@ crate-type = ["rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+# image-png：解码图标 PNG 供运行时 set_icon 使用（修复任务栏按钮图标显示异常）
+tauri = { version = "2", features = ["image-png"] }
 # 单实例锁：重复启动时聚焦已有实例，避免任务栏出现多个胶囊
 tauri-plugin-single-instance = "2"
 serde = { version = "1", features = ["derive"] }
@@ -29,9 +30,11 @@ futures-util = "0.3"
 # 异步运行时直接依赖（Tauri 内置 tokio，此处声明 time 特性用于重连退避 sleep）
 tokio = { version = "1", features = ["time"] }
 # Win32 API 绑定：仅用于任务栏几何探测与窗口定位（SetWindowPos 等）
+# Gdi：构造 HICON 所需的 DIB/位图接口（任务栏按钮大图标显式下发）
 windows-sys = { version = "0.59", features = [
     "Win32_Foundation",
     "Win32_UI_WindowsAndMessaging",
+    "Win32_Graphics_Gdi",
 ] }
 
 [profile.release]
