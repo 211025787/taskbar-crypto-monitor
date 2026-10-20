@@ -1,0 +1,58 @@
+{
+    "$schema": "https://schema.tauri.app/config/2",
+    "productName": "Taskbar Crypto Monitor",
+    "version": "0.1.0",
+    "identifier": "com.taskbar.crypto.monitor",
+    "build": {
+        "beforeDevCommand": "npm run dev",
+        "devUrl": "http://localhost:5173",
+        "beforeBuildCommand": "npm run build",
+        "frontendDist": "../dist"
+    },
+    "app": {
+        "windows": [
+            {
+                "label": "capsule",
+                "title": "Taskbar Crypto Monitor",
+                "width": 372,
+                "height": 44,
+                "decorations": false,
+                "transparent": true,
+                "alwaysOnTop": true,
+                "skipTaskbar": true,
+                "resizable": false,
+                "focus": false,
+                "shadow": false,
+                "visible": true
+            },
+            {
+                "label": "settings",
+                "title": "设置 - Taskbar Crypto Monitor",
+                "width": 380,
+                "height": 500,
+                "center": true,
+                "visible": false,
+                "resizable": false,
+                "skipTaskbar": false,
+                "shadow": true
+            }
+        ],
+        "security": {
+            "csp": null
+        }
+    },
+    "bundle": {
+        "active": true,
+        "targets": ["nsis"],
+        "windows": {
+            "webviewInstallMode": {
+                "type": "skip"
+            },
+            "nsis": {
+                "languages": ["SimpChinese"],
+                "displayLanguageSelector": false
+            }
+        },
+        "icon": ["icons/icon.ico", "icons/icon.png"]
+    }
+}

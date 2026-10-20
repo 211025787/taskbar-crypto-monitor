@@ -1,0 +1,154 @@
+/* ===== 全局重置：透明窗口基础 ===== */
+
+html,
+body,
+#root {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    overflow: hidden;
+    /* 禁止文本选择，保持胶囊的工具属性 */
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: default;
+    font-family: "Segoe UI Variable Display", "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif;
+}
+
+/* ===== 胶囊容器：全透明 ===== */
+
+/* 全透明底：无背景、无投影，文字与曲线直接浮于任务栏之上 */
+.ycs-capsule {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(10px * var(--ycs-scale, 1));
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    padding: 0 12px;
+    /* 全透明底：文字与曲线直接浮于任务栏之上 */
+    background: transparent;
+    color: #f3f4f6;
+    /* 深色描边阴影保证在任意任务栏底色上的可读性 */
+    text-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.9),
+        0 0 10px rgba(0, 0, 0, 0.55);
+    /* 入场淡入（无轮廓位移，避免与透明底冲突） */
+    animation: ycs-capsule-in 360ms ease-out both;
+}
+
+@keyframes ycs-capsule-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* ===== 字段排版（尺寸跟随缩放系数） ===== */
+
+/* 合约名：小字号大写字距徽标 */
+.ycs-symbol {
+    font-size: calc(11px * var(--ycs-scale, 1));
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    color: rgba(226, 232, 240, 0.85);
+    white-space: nowrap;
+}
+
+/* 最新价：主视觉，表格数字对齐避免跳动 */
+.ycs-price {
+    font-size: calc(14px * var(--ycs-scale, 1));
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.2px;
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+/* 涨跌幅：绿涨红跌 */
+.ycs-change {
+    font-size: calc(12px * var(--ycs-scale, 1));
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.ycs-change--up {
+    color: #4ade80;
+}
+
+.ycs-change--down {
+    color: #f87171;
+}
+
+/* ===== Sparkline 迷你趋势图 ===== */
+
+.ycs-sparkline {
+    flex-shrink: 0;
+    overflow: visible;
+    /* 显示尺寸随缩放系数变化，viewBox 保持 76x22 比例拉伸 */
+    width: calc(80px * var(--ycs-scale, 1));
+    height: calc(22px * var(--ycs-scale, 1));
+}
+
+.ycs-sparkline__area {
+    fill: url(#ycs-spark-area);
+}
+
+.ycs-sparkline__line {
+    fill: none;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* 上涨趋势绿色描边并叠加柔和发光，下跌为红色 */
+/* 状态类挂在胶囊根元素上，保证关闭涨跌幅显示后趋势线仍正确着色 */
+.ycs-capsule--up .ycs-sparkline__line {
+    stroke: #4ade80;
+    filter: drop-shadow(0 0 3px rgba(74, 222, 128, 0.65));
+}
+
+.ycs-capsule--down .ycs-sparkline__line {
+    stroke: #f87171;
+    filter: drop-shadow(0 0 3px rgba(248, 113, 113, 0.65));
+}
+/* ===== WebSocket 连接状态指示点 ===== */
+
+/* 基础圆点：仅连接中/重连中显示（已连接时由组件条件渲染隐藏） */
+.ycs-ws-dot {
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+/* 连接中：灰色呼吸闪烁 */
+.ycs-ws-dot--wait {
+    background: rgba(203, 213, 225, 0.9);
+    animation: ycs-ws-breathe 1.2s ease-in-out infinite;
+}
+
+/* 重连中：红色呼吸闪烁，提示行情可能中断 */
+.ycs-ws-dot--error {
+    background: #f87171;
+    animation: ycs-ws-breathe 0.7s ease-in-out infinite;
+}
+
+/* 轮询模式：琥珀色常亮（推送流不可用但数据仍在更新） */
+.ycs-ws-dot--poll {
+    background: #fbbf24;
+}
+
+@keyframes ycs-ws-breathe {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0.25;
+    }
+}

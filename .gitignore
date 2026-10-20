@@ -1,0 +1,8 @@
+# 前端构建产物
+node_modules/
+dist/
+
+# 日志与临时文件
+*.log
+.toolchain-install.log
+.toolchain-install.err.log

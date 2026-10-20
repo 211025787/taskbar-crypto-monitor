@@ -1,0 +1,27 @@
+{
+    "name": "taskbar-crypto-monitor",
+    "private": true,
+    "version": "0.1.0",
+    "description": "Binance USDⓈ-M 永续合约任务栏行情监控（胶囊 UI 覆盖任务栏）",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "preview": "vite preview",
+        "tauri": "tauri"
+    },
+    "dependencies": {
+        "@tauri-apps/api": "^2",
+        "react": "^19",
+        "react-dom": "^19",
+        "zustand": "^5"
+    },
+    "devDependencies": {
+        "@tauri-apps/cli": "^2",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@vitejs/plugin-react": "^5",
+        "typescript": "^5.9",
+        "vite": "^7"
+    }
+}

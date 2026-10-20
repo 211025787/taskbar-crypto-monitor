@@ -1,0 +1,7 @@
+{
+    "$schema": "../gen/schemas/desktop-schema.json",
+    "identifier": "default",
+    "description": "默认权限集：胶囊窗口与设置窗口的核心能力",
+    "windows": ["capsule", "settings"],
+    "permissions": ["core:default"]
+}
