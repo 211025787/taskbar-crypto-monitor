@@ -117,38 +117,3 @@ body,
     stroke: #f87171;
     filter: drop-shadow(0 0 3px rgba(248, 113, 113, 0.65));
 }
-/* ===== WebSocket 连接状态指示点 ===== */
-
-/* 基础圆点：仅连接中/重连中显示（已连接时由组件条件渲染隐藏） */
-.ycs-ws-dot {
-    flex-shrink: 0;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-}
-
-/* 连接中：灰色呼吸闪烁 */
-.ycs-ws-dot--wait {
-    background: rgba(203, 213, 225, 0.9);
-    animation: ycs-ws-breathe 1.2s ease-in-out infinite;
-}
-
-/* 重连中：红色呼吸闪烁，提示行情可能中断 */
-.ycs-ws-dot--error {
-    background: #f87171;
-    animation: ycs-ws-breathe 0.7s ease-in-out infinite;
-}
-
-/* 轮询模式：琥珀色常亮（推送流不可用但数据仍在更新） */
-.ycs-ws-dot--poll {
-    background: #fbbf24;
-}
-
-@keyframes ycs-ws-breathe {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0.25;
-    }
-}

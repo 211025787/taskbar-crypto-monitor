@@ -204,6 +204,13 @@ fn show_capsule_menu(app: AppHandle, window: tauri::WebviewWindow) {
 /// 应用入口：注册命令与事件处理，setup 阶段完成胶囊窗口初始化
 pub fn run() {
     tauri::Builder::default()
+        // 单实例锁须最先注册：重复启动时新进程立即退出，改为前置设置窗口提示已有实例
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(window) = app.get_webview_window("settings") {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }))
         .invoke_handler(tauri::generate_handler![
             get_config,
             save_config,

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { DEFAULT_CONFIG, type CapsuleConfig, type TickerData, type WsStatus } from "./types";
+import { DEFAULT_CONFIG, type CapsuleConfig, type TickerData } from "./types";
 import "./styles/capsule.css";
 
 /** 趋势数据点（当前由实时价格流构建，后续阶段接入 Binance Kline 历史数据拼接） */
@@ -51,8 +51,7 @@ export default function App() {
     const [config, setConfig] = useState<CapsuleConfig>(DEFAULT_CONFIG);
     /** 最新行情快照（null 表示尚未收到首条推送） */
     const [ticker, setTicker] = useState<TickerData | null>(null);
-    /** WebSocket 连接状态（驱动胶囊上的状态指示点） */
-    const [wsStatus, setWsStatus] = useState<WsStatus>({ state: "connecting", detail: "" });
+
     /** 实时价格趋势缓冲（有界，收到推送即追加） */
     const [trend, setTrend] = useState<TrendPoint[]>([]);
     /** 切换合约时清空趋势缓冲的标记（在事件回调内区分新旧合约数据） */
@@ -90,13 +89,10 @@ export default function App() {
                 return next.length > TREND_MAX_POINTS ? next.slice(next.length - TREND_MAX_POINTS) : next;
             });
         });
-        // 订阅连接状态推送（connecting/connected/reconnecting）
-        const unlistenStatus = listen<WsStatus>("ws-status", (event) => setWsStatus(event.payload));
         // 组件卸载时取消事件订阅
         return () => {
             unlistenConfig.then((fn) => fn()).catch(() => undefined);
             unlistenTicker.then((fn) => fn()).catch(() => undefined);
-            unlistenStatus.then((fn) => fn()).catch(() => undefined);
         };
     }, []);
 
@@ -152,13 +148,7 @@ export default function App() {
                     {polyline && <polyline className="ycs-sparkline__line" points={polyline} />}
                 </svg>
             )}
-            {/* 连接状态指示点：已连接隐藏；连接中灰、重连中红、轮询模式黄 */}
-            {wsStatus.state !== "connected" && (
-                <span
-                    className={`ycs-ws-dot ${wsStatus.state === "reconnecting" ? "ycs-ws-dot--error" : wsStatus.state === "polling" ? "ycs-ws-dot--poll" : "ycs-ws-dot--wait"}`}
-                    title={wsStatus.state === "reconnecting" ? `连接断开，${wsStatus.detail}` : wsStatus.state === "polling" ? wsStatus.detail : "连接行情服务器中…"}
-                />
-            )}
+
         </div>
     );
 }

@@ -50,11 +50,3 @@ export interface TickerData {
     /** 24 小时涨跌额（USDT） */
     changeAmount: number;
 }
-
-/** WebSocket 连接状态（Rust 端 ws-status 事件载荷） */
-export interface WsStatus {
-    /** 连接状态：connecting（连接中）/ connected（已连接）/ reconnecting（退避重连中）/ polling（推送流不可用，REST 轮询模式） */
-    state: "connecting" | "connected" | "reconnecting" | "polling";
-    /** 状态补充说明（如"3s 后重连"） */
-    detail: string;
-}
