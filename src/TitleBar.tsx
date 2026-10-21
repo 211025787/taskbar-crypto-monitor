@@ -9,14 +9,14 @@ export interface TitleBarProps {
 
 /** 深色自绘标题栏（home/settings 共享）：拖动区 + 最小化 + 关闭（关闭 = 隐藏窗口，应用常驻胶囊） */
 export default function TitleBar({ title }: TitleBarProps) {
-    /** 最小化当前窗口：走 Rust 注入式命令（home 不在 capability 窗口列表，JS window API 无权限） */
+    /** 最小化当前窗口：走 Rust 注入式命令（core:default 不含 minimize/hide 等窗口写权限，自定义 Rust 命令注入调用方窗口引用可绕开逐项授权） */
     const minimize = () => {
-        invoke("minimize_current").catch(() => undefined);
+        invoke("minimize_current").catch((error: unknown) => console.warn("窗口操作失败:", error));
     };
 
     /** 隐藏当前窗口：home 双击胶囊可再开，settings 右键菜单可再开 */
     const hide = () => {
-        invoke("hide_current").catch(() => undefined);
+        invoke("hide_current").catch((error: unknown) => console.warn("窗口操作失败:", error));
     };
 
     return (

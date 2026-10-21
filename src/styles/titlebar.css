@@ -1,12 +1,12 @@
 /* ===== 深色自绘标题栏（home/settings 共享，capsule 入口不引用） ===== */
 
-/* 色值用硬编码而非 --ycs-* 变量：变量定义在 home.css :root，settings 入口依赖合并包顺序脆弱 */
+/* 色值用 var() 带回退值：正常走 token，变量缺失（独立打包场景）回退同值 */
 .ycs-titlebar {
     display: flex;
     align-items: stretch;
     height: 34px;
     flex-shrink: 0;
-    background: #0f1626;
+    background: var(--ycs-side, #0f1626);
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     user-select: none;
 }
@@ -20,18 +20,19 @@
 }
 
 .ycs-titlebar__title {
-    color: #8a93a8;
+    color: var(--ycs-muted, #8a93a8);
     font-size: 12px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    pointer-events: none;
 }
 
 .ycs-titlebar__btn {
     width: 44px;
     border: none;
     background: transparent;
-    color: #8a93a8;
+    color: var(--ycs-muted, #8a93a8);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -39,11 +40,11 @@
 }
 
 .ycs-titlebar__btn:hover {
-    background: #1a2643;
-    color: #e8ecf5;
+    background: var(--ycs-surface-raised, #1a2643);
+    color: var(--ycs-ink, #e8ecf5);
 }
 
 .ycs-titlebar__btn--close:hover {
     background: rgba(248, 113, 113, 0.18);
-    color: #f87171;
+    color: var(--ycs-down, #f87171);
 }
