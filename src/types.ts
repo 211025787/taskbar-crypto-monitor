@@ -10,6 +10,8 @@ export interface CapsuleConfig {
     showChange: boolean;
     /** 是否显示迷你趋势曲线（Sparkline） */
     showSparkline: boolean;
+    /** 是否在胶囊显示当前持仓浮盈（USDT，实时未实现盈亏；默认 true） */
+    showPnl: boolean;
     /** 整体缩放系数，有效范围 0.8 ~ 1.4，默认 1.0 */
     scale: number;
     /** 各合约的仓位配置集合（首页计算器），每合约至多一条 */
@@ -39,6 +41,7 @@ export const DEFAULT_CONFIG: CapsuleConfig = {
     showPrice: true,
     showChange: true,
     showSparkline: true,
+    showPnl: true,
     scale: 1.0,
     positions: []
 };
