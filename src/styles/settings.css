@@ -16,15 +16,26 @@ body,
     box-sizing: border-box;
     width: 100%;
     height: 100%;
-    padding: 22px 24px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    overflow-y: auto;
+    overflow: hidden;
     /* 半透明深色渐变底 + 背景模糊 + 饱和度增强：玻璃拟态三要素 */
     background: linear-gradient(160deg, rgba(24, 26, 34, 0.96), rgba(15, 17, 23, 0.98));
     backdrop-filter: blur(24px) saturate(150%);
     -webkit-backdrop-filter: blur(24px) saturate(150%);
+}
+
+/* 标题栏下方可滚动内容区：承接原容器的内边距/条目间距/滚动行为（标题栏固定不随滚动） */
+.ycs-settings__body {
+    box-sizing: border-box;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 22px 24px;
+    overflow-y: auto;
 }
 
 /* ===== 标题区 ===== */
@@ -275,4 +286,23 @@ body,
 .ycs-open-home:hover {
     border-color: rgba(245, 202, 85, 0.7);
     filter: brightness(1.1);
+}
+
+/* ===== 深色滚动条（作用域限定防多窗口泄漏；本文件无 --ycs-* 变量，用等值硬编码） ===== */
+.ycs-settings ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.ycs-settings ::-webkit-scrollbar-thumb {
+    background: #3d475e;
+    border-radius: 3px;
+}
+
+.ycs-settings ::-webkit-scrollbar-thumb:hover {
+    background: #8a93a8;
+}
+
+.ycs-settings ::-webkit-scrollbar-track {
+    background: transparent;
 }

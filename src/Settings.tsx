@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import TitleBar from "./TitleBar";
 import { DEFAULT_CONFIG, type CapsuleConfig, type SymbolList } from "./types";
 import "./styles/settings.css";
 
@@ -110,102 +111,106 @@ export default function Settings() {
 
     return (
         <div className="ycs-settings">
-            <h1 className="ycs-settings__title">胶囊显示设置</h1>
-            <p className="ycs-settings__hint">在任务栏胶囊上点击右键可打开菜单；修改即时生效并自动保存。</p>
+            {/* 深色自绘标题栏：拖动区 + 最小化/关闭（decorations:false 后无系统边框） */}
+            <TitleBar title="设置 - Taskbar Crypto Monitor" />
+            <div className="ycs-settings__body">
+                <h1 className="ycs-settings__title">胶囊显示设置</h1>
+                <p className="ycs-settings__hint">在任务栏胶囊上点击右键可打开菜单；修改即时生效并自动保存。</p>
 
-            <button
-                type="button"
-                className="ycs-open-home"
-                onClick={() => invoke("open_home").catch(() => undefined)}
-            >
-                打开首页（合约详情 / K 线 / 仓位计算器）
-            </button>
+                <button
+                    type="button"
+                    className="ycs-open-home"
+                    onClick={() => invoke("open_home").catch(() => undefined)}
+                >
+                    打开首页（合约详情 / K 线 / 仓位计算器）
+                </button>
 
-            <section className="ycs-settings__section">
-                <h2 className="ycs-settings__section-title">合约选择</h2>
-                <div className="ycs-symbol-current">
-                    当前合约：<span className="ycs-symbol-current__name">{config.symbol}</span>
-                </div>
-                <input
-                    className="ycs-symbol-search"
-                    type="text"
-                    placeholder="搜索合约，如 BTC / SOL / PEPE"
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                />
-                {symbolList === null && <div className="ycs-symbol-status">正在加载合约列表…</div>}
-                {symbolList?.source === "builtin" && (
-                    <div className="ycs-symbol-status ycs-symbol-status--warn">网络不可用，当前显示内置合约列表</div>
-                )}
-                {symbolList !== null && filteredSymbols.length === 0 && (
-                    <div className="ycs-symbol-status">没有匹配的合约</div>
-                )}
-                {filteredSymbols.length > 0 && (
-                    <div className="ycs-symbol-list">
-                        {filteredSymbols.map((item) => (
-                            <SymbolRow
-                                key={item.symbol}
-                                symbol={item.symbol}
-                                base={item.base}
-                                active={item.symbol === config.symbol}
-                                onSelect={() => update({ symbol: item.symbol })}
-                            />
-                        ))}
-                    </div>
-                )}
-            </section>
-
-            <section className="ycs-settings__section">
-                <h2 className="ycs-settings__section-title">显示字段</h2>
-                <FieldRow
-                    label="合约名称"
-                    description="如 BTCUSDT 标识"
-                    checked={config.showSymbol}
-                    onChange={(value) => update({ showSymbol: value })}
-                />
-                <FieldRow
-                    label="最新价格"
-                    description="最新成交价（USDT）"
-                    checked={config.showPrice}
-                    onChange={(value) => update({ showPrice: value })}
-                />
-                <FieldRow
-                    label="24 小时涨跌幅"
-                    description="百分比涨跌，绿涨红跌"
-                    checked={config.showChange}
-                    onChange={(value) => update({ showChange: value })}
-                />
-                <FieldRow
-                    label="趋势曲线"
-                    description="迷你 Sparkline 折线图"
-                    checked={config.showSparkline}
-                    onChange={(value) => update({ showSparkline: value })}
-                />
-            </section>
-
-            <section className="ycs-settings__section">
-                <h2 className="ycs-settings__section-title">整体大小</h2>
-                <div className="ycs-setting-row">
-                    <div className="ycs-setting-row__text">
-                        <span className="ycs-setting-row__label">缩放比例</span>
-                        <span className="ycs-setting-row__desc">{percent}%（范围 80% ~ 140%）</span>
+                <section className="ycs-settings__section">
+                    <h2 className="ycs-settings__section-title">合约选择</h2>
+                    <div className="ycs-symbol-current">
+                        当前合约：<span className="ycs-symbol-current__name">{config.symbol}</span>
                     </div>
                     <input
-                        className="ycs-setting-row__slider"
-                        type="range"
-                        min={0.8}
-                        max={1.4}
-                        step={0.05}
-                        value={config.scale}
-                        onChange={(event) => update({ scale: Number(event.target.value) })}
+                        className="ycs-symbol-search"
+                        type="text"
+                        placeholder="搜索合约，如 BTC / SOL / PEPE"
+                        value={query}
+                        onChange={(event) => setQuery(event.target.value)}
                     />
-                </div>
-            </section>
+                    {symbolList === null && <div className="ycs-symbol-status">正在加载合约列表…</div>}
+                    {symbolList?.source === "builtin" && (
+                        <div className="ycs-symbol-status ycs-symbol-status--warn">网络不可用，当前显示内置合约列表</div>
+                    )}
+                    {symbolList !== null && filteredSymbols.length === 0 && (
+                        <div className="ycs-symbol-status">没有匹配的合约</div>
+                    )}
+                    {filteredSymbols.length > 0 && (
+                        <div className="ycs-symbol-list">
+                            {filteredSymbols.map((item) => (
+                                <SymbolRow
+                                    key={item.symbol}
+                                    symbol={item.symbol}
+                                    base={item.base}
+                                    active={item.symbol === config.symbol}
+                                    onSelect={() => update({ symbol: item.symbol })}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </section>
 
-            <footer className="ycs-settings__footer">
-                <span className={`ycs-settings__saved ${saved ? "ycs-settings__saved--visible" : ""}`}>已保存</span>
-                <span className="ycs-settings__note">行情数据来自 Binance 实时推送；断线后自动重连</span>
-            </footer>
+                <section className="ycs-settings__section">
+                    <h2 className="ycs-settings__section-title">显示字段</h2>
+                    <FieldRow
+                        label="合约名称"
+                        description="如 BTCUSDT 标识"
+                        checked={config.showSymbol}
+                        onChange={(value) => update({ showSymbol: value })}
+                    />
+                    <FieldRow
+                        label="最新价格"
+                        description="最新成交价（USDT）"
+                        checked={config.showPrice}
+                        onChange={(value) => update({ showPrice: value })}
+                    />
+                    <FieldRow
+                        label="24 小时涨跌幅"
+                        description="百分比涨跌，绿涨红跌"
+                        checked={config.showChange}
+                        onChange={(value) => update({ showChange: value })}
+                    />
+                    <FieldRow
+                        label="趋势曲线"
+                        description="迷你 Sparkline 折线图"
+                        checked={config.showSparkline}
+                        onChange={(value) => update({ showSparkline: value })}
+                    />
+                </section>
+
+                <section className="ycs-settings__section">
+                    <h2 className="ycs-settings__section-title">整体大小</h2>
+                    <div className="ycs-setting-row">
+                        <div className="ycs-setting-row__text">
+                            <span className="ycs-setting-row__label">缩放比例</span>
+                            <span className="ycs-setting-row__desc">{percent}%（范围 80% ~ 140%）</span>
+                        </div>
+                        <input
+                            className="ycs-setting-row__slider"
+                            type="range"
+                            min={0.8}
+                            max={1.4}
+                            step={0.05}
+                            value={config.scale}
+                            onChange={(event) => update({ scale: Number(event.target.value) })}
+                        />
+                    </div>
+                </section>
+
+                <footer className="ycs-settings__footer">
+                    <span className={`ycs-settings__saved ${saved ? "ycs-settings__saved--visible" : ""}`}>已保存</span>
+                    <span className="ycs-settings__note">行情数据来自 Binance 实时推送；断线后自动重连</span>
+                </footer>
+            </div>
         </div>
     );
 }

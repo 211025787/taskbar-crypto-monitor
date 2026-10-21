@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import CandleChart from "./CandleChart";
 import PositionCalculator from "./PositionCalculator";
+import TitleBar from "./TitleBar";
 import { formatPrice, formatVolume } from "./calc";
 import {
     DEFAULT_CONFIG,
@@ -241,96 +242,100 @@ export default function Home() {
             : { connecting: "连接中…", connected: "", reconnecting: `重连中（${klineStatus.detail}）`, stopped: "已停止" }[klineStatus.state];
 
     return (
-        <div className="ycs-home">
-            <aside className="ycs-home__sidebar">
-                <h1 className="ycs-home__brand">
-                    <span className="ycs-home__brand-mark">◆</span>
-                    Taskbar Crypto Monitor
-                </h1>
-                <input
-                    className="ycs-home__search"
-                    type="text"
-                    placeholder="搜索合约，如 BTC / SOL / PEPE"
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                />
-                {symbolList?.source === "builtin" && (
-                    <div className="ycs-home__list-status ycs-home__list-status--warn">网络不可用，显示内置合约列表</div>
-                )}
-                {symbolList !== null && filteredSymbols.length === 0 && (
-                    <div className="ycs-home__list-status">没有匹配的合约</div>
-                )}
-                <div className="ycs-home__list">
-                    {filteredSymbols.map((item) => {
-                        const change = tickerChanges[item.symbol];
-                        return (
-                            <button
-                                key={item.symbol}
-                                type="button"
-                                className={`ycs-home__symbol ${item.symbol === symbol ? "ycs-home__symbol--active" : ""}`}
-                                onClick={() => setSymbol(item.symbol)}
-                            >
-                                <span className="ycs-home__symbol-name">{item.symbol}</span>
-                                <span
-                                    className={`ycs-home__symbol-change ${
-                                        change === undefined ? "" : change >= 0 ? "ycs-home__symbol-change--up" : "ycs-home__symbol-change--down"
-                                    }`}
+        <div className="ycs-home-wrap">
+            {/* 深色自绘标题栏：拖动区 + 最小化/关闭（decorations:false 后无系统边框） */}
+            <TitleBar title="Taskbar Crypto Monitor" />
+            <div className="ycs-home">
+                <aside className="ycs-home__sidebar">
+                    <h1 className="ycs-home__brand">
+                        <span className="ycs-home__brand-mark">◆</span>
+                        Taskbar Crypto Monitor
+                    </h1>
+                    <input
+                        className="ycs-home__search"
+                        type="text"
+                        placeholder="搜索合约，如 BTC / SOL / PEPE"
+                        value={query}
+                        onChange={(event) => setQuery(event.target.value)}
+                    />
+                    {symbolList?.source === "builtin" && (
+                        <div className="ycs-home__list-status ycs-home__list-status--warn">网络不可用，显示内置合约列表</div>
+                    )}
+                    {symbolList !== null && filteredSymbols.length === 0 && (
+                        <div className="ycs-home__list-status">没有匹配的合约</div>
+                    )}
+                    <div className="ycs-home__list">
+                        {filteredSymbols.map((item) => {
+                            const change = tickerChanges[item.symbol];
+                            return (
+                                <button
+                                    key={item.symbol}
+                                    type="button"
+                                    className={`ycs-home__symbol ${item.symbol === symbol ? "ycs-home__symbol--active" : ""}`}
+                                    onClick={() => setSymbol(item.symbol)}
                                 >
-                                    {change === undefined ? "—" : `${change >= 0 ? "+" : ""}${change.toFixed(1)}%`}
-                                </span>
-                            </button>
-                        );
-                    })}
-                </div>
-            </aside>
-
-            <div className="ycs-home__main">
-                <header className={`ycs-marketbar ${changeUp ? "ycs-marketbar--up" : "ycs-marketbar--down"}`}>
-                    <span className="ycs-marketbar__symbol">{symbol}</span>
-                    <span className="ycs-marketbar__price">{overview ? formatPrice(overview.lastPrice) : "—"}</span>
-                    <span className="ycs-marketbar__change">
-                        {overview ? `${changeUp ? "+" : ""}${overview.changePercent.toFixed(2)}%` : "—"}
-                    </span>
-                    <span className="ycs-marketbar__extra">
-                        {overview
-                            ? `高 ${formatPrice(overview.high)} · 低 ${formatPrice(overview.low)} · 额 ${formatVolume(overview.quoteVolume)} USDT`
-                            : "—"}
-                    </span>
-                    <span className="ycs-marketbar__status">{statusText}</span>
-                    <div className="ycs-marketbar__refresh">
-                        <span className="ycs-marketbar__time">{overviewTimeText ? `${overviewTimeText} 更新` : ""}</span>
-                        <button type="button" className="ycs-marketbar__refresh-btn" title="立即刷新 24h 概览" onClick={refreshOverview}>
-                            ⟳
-                        </button>
-                    </div>
-                    <div className="ycs-intervals">
-                        {KLINE_INTERVALS.map((item) => (
-                            <button
-                                key={item}
-                                type="button"
-                                className={`ycs-intervals__btn ${item === interval ? "ycs-intervals__btn--active" : ""}`}
-                                onClick={() => setInterval_(item)}
-                            >
-                                {item}
-                            </button>
-                        ))}
-                    </div>
-                </header>
-
-                <div className="ycs-home__body">
-                    <div className="ycs-chart-panel">
-                        {klineError !== null ? (
-                            <div className="ycs-chart-panel__error">
-                                <span>{klineError}</span>
-                                <button type="button" onClick={retryKlines}>
-                                    重试
+                                    <span className="ycs-home__symbol-name">{item.symbol}</span>
+                                    <span
+                                        className={`ycs-home__symbol-change ${
+                                            change === undefined ? "" : change >= 0 ? "ycs-home__symbol-change--up" : "ycs-home__symbol-change--down"
+                                        }`}
+                                    >
+                                        {change === undefined ? "—" : `${change >= 0 ? "+" : ""}${change.toFixed(1)}%`}
+                                    </span>
                                 </button>
-                            </div>
-                        ) : (
-                            <CandleChart klines={klines} interval={interval} lastPrice={lastPrice} />
-                        )}
+                            );
+                        })}
                     </div>
-                    <PositionCalculator symbol={symbol} lastPrice={lastPrice} config={config} onConfigChange={setConfig} />
+                </aside>
+
+                <div className="ycs-home__main">
+                    <header className={`ycs-marketbar ${changeUp ? "ycs-marketbar--up" : "ycs-marketbar--down"}`}>
+                        <span className="ycs-marketbar__symbol">{symbol}</span>
+                        <span className="ycs-marketbar__price">{overview ? formatPrice(overview.lastPrice) : "—"}</span>
+                        <span className="ycs-marketbar__change">
+                            {overview ? `${changeUp ? "+" : ""}${overview.changePercent.toFixed(2)}%` : "—"}
+                        </span>
+                        <span className="ycs-marketbar__extra">
+                            {overview
+                                ? `高 ${formatPrice(overview.high)} · 低 ${formatPrice(overview.low)} · 额 ${formatVolume(overview.quoteVolume)} USDT`
+                                : "—"}
+                        </span>
+                        <span className="ycs-marketbar__status">{statusText}</span>
+                        <div className="ycs-marketbar__refresh">
+                            <span className="ycs-marketbar__time">{overviewTimeText ? `${overviewTimeText} 更新` : ""}</span>
+                            <button type="button" className="ycs-marketbar__refresh-btn" title="立即刷新 24h 概览" onClick={refreshOverview}>
+                                ⟳
+                            </button>
+                        </div>
+                        <div className="ycs-intervals">
+                            {KLINE_INTERVALS.map((item) => (
+                                <button
+                                    key={item}
+                                    type="button"
+                                    className={`ycs-intervals__btn ${item === interval ? "ycs-intervals__btn--active" : ""}`}
+                                    onClick={() => setInterval_(item)}
+                                >
+                                    {item}
+                                </button>
+                            ))}
+                        </div>
+                    </header>
+
+                    <div className="ycs-home__body">
+                        <div className="ycs-chart-panel">
+                            {klineError !== null ? (
+                                <div className="ycs-chart-panel__error">
+                                    <span>{klineError}</span>
+                                    <button type="button" onClick={retryKlines}>
+                                        重试
+                                    </button>
+                                </div>
+                            ) : (
+                                <CandleChart klines={klines} interval={interval} lastPrice={lastPrice} />
+                            )}
+                        </div>
+                        <PositionCalculator symbol={symbol} lastPrice={lastPrice} config={config} onConfigChange={setConfig} />
+                    </div>
                 </div>
             </div>
         </div>

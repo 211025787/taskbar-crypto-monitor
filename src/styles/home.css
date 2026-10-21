@@ -54,13 +54,24 @@ body,
     font-variant-numeric: tabular-nums;
 }
 
-/* ===== 布局骨架：左栏 300px 搜索 + 右区（数据带 + 图/仓位双列） ===== */
+/* ===== 布局骨架：标题栏 + 主体外壳，左栏 300px 搜索 + 右区（数据带 + 图/仓位双列） ===== */
+
+/* 标题栏 + 主体 的纵向外壳 */
+.ycs-home-wrap {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    background: var(--ycs-bg);
+    overflow: hidden;
+}
 
 .ycs-home {
     position: relative;
     display: flex;
     width: 100%;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     /* 页面背景限定在首页容器：避免全局选择器污染透明胶囊窗口 */
     background: var(--ycs-bg);
     /* 零滚动：超扁窗口尺寸即页面尺寸，溢出一律裁剪 */
@@ -773,4 +784,23 @@ body,
 .ycs-sim__apply--confirm {
     background: var(--ycs-down);
     color: var(--ycs-ink);
+}
+
+/* ===== 深色滚动条（Chromium 私有前缀，作用域限定在首页防泄漏胶囊窗口） ===== */
+.ycs-home ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.ycs-home ::-webkit-scrollbar-thumb {
+    background: var(--ycs-dim);
+    border-radius: 3px;
+}
+
+.ycs-home ::-webkit-scrollbar-thumb:hover {
+    background: var(--ycs-muted);
+}
+
+.ycs-home ::-webkit-scrollbar-track {
+    background: transparent;
 }
