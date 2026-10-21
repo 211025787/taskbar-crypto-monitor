@@ -124,6 +124,19 @@ fn fetch_symbols() -> SymbolList {
     }
 }
 
+/// 最小化调用方窗口（自绘标题栏按钮调用，window 参数由 Tauri 注入调用方引用）
+#[tauri::command]
+fn minimize_current(window: tauri::WebviewWindow) {
+    let _ = window.minimize();
+}
+
+/// 隐藏调用方窗口（自绘标题栏"关闭"=隐藏：应用常驻胶囊继续监控，
+/// home 双击胶囊 open_home 可再开，settings 右键菜单可再开）
+#[tauri::command]
+fn hide_current(window: tauri::WebviewWindow) {
+    let _ = window.hide();
+}
+
 /// 依据配置计算胶囊窗口的逻辑尺寸（宽度随可见字段、合约名长度与缩放变化）
 fn compute_capsule_size(cfg: &CapsuleConfig) -> LogicalSize<f64> {
     let mut content = 0.0f64;
@@ -144,6 +157,11 @@ fn compute_capsule_size(cfg: &CapsuleConfig) -> LogicalSize<f64> {
     }
     if cfg.show_sparkline {
         content += 82.0;
+        fields += 1;
+    }
+    if cfg.show_pnl {
+        // 盈亏字段如 "+123.45u"（约 8 字符），常开预留宽度（无仓位时字段不渲染仅留白）
+        content += 66.0;
         fields += 1;
     }
     // 字段间距：相邻可见字段各留 10 逻辑像素
@@ -236,7 +254,9 @@ pub fn run() {
             switch_kline_stream,
             stop_kline_stream,
             fetch_overview,
-            fetch_tickers
+            fetch_tickers,
+            minimize_current,
+            hide_current
         ])
         .on_menu_event(|app, event| match event.id().as_ref() {
             // 右键菜单：打开设置窗口

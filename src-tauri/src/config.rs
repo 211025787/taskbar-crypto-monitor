@@ -41,10 +41,18 @@ pub struct CapsuleConfig {
     pub show_change: bool,
     /// 是否显示迷你趋势曲线（Sparkline）
     pub show_sparkline: bool,
+    /// 是否在胶囊显示当前持仓浮盈（USDT，实时未实现盈亏），旧配置缺省为 true
+    #[serde(default = "default_show_pnl")]
+    pub show_pnl: bool,
     /// 整体缩放系数，有效范围 0.8 ~ 1.4，默认 1.0
     pub scale: f64,
     /// 各合约的仓位配置集合（首页计算器），每合约至多一条
     pub positions: Vec<PositionConfig>,
+}
+
+/// show_pnl 的 serde 缺省值：旧配置无此字段时默认开启
+fn default_show_pnl() -> bool {
+    true
 }
 
 impl Default for CapsuleConfig {
@@ -56,6 +64,7 @@ impl Default for CapsuleConfig {
             show_price: true,
             show_change: true,
             show_sparkline: true,
+            show_pnl: true,
             scale: 1.0,
             positions: Vec::new(),
         }
