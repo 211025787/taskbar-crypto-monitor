@@ -4,10 +4,12 @@
 //! + 合约搜索选择 + 显示字段/缩放配置。
 
 mod config;
+mod klines;
 mod market;
 mod taskbar;
 
 use config::CapsuleConfig;
+use klines::{fetch_klines, fetch_overview, fetch_tickers, stop_kline_stream, switch_kline_stream};
 use serde::Serialize;
 use std::sync::OnceLock;
 use std::time::Duration;
@@ -46,11 +48,14 @@ fn capsule_menu(app: &AppHandle) -> Menu<tauri::Wry> {
     CAPSULE_MENU
         .get_or_init(|| {
             let menu = Menu::new(app).expect("构建菜单失败");
+            let home_item =
+                MenuItem::with_id(app, "capsule-home", "打开首页…", true, None::<&str>).expect("构建菜单项失败");
             let settings_item =
                 MenuItem::with_id(app, "capsule-settings", "设置…", true, None::<&str>)
                     .expect("构建菜单项失败");
             let quit_item =
                 MenuItem::with_id(app, "capsule-quit", "退出", true, None::<&str>).expect("构建菜单项失败");
+            let _ = menu.append(&home_item);
             let _ = menu.append(&settings_item);
             let _ = menu.append(&quit_item);
             menu
@@ -190,6 +195,15 @@ fn open_settings(app: AppHandle) {
     }
 }
 
+/// 打开（或前置已打开的）首页主窗口
+#[tauri::command]
+fn open_home(app: AppHandle) {
+    if let Some(window) = app.get_webview_window("home") {
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+}
+
 /// 在胶囊窗口上弹出原生右键菜单（设置 / 退出）
 #[tauri::command]
 fn show_capsule_menu(app: AppHandle, window: tauri::WebviewWindow) {
@@ -215,8 +229,14 @@ pub fn run() {
             get_config,
             save_config,
             open_settings,
+            open_home,
             show_capsule_menu,
-            fetch_symbols
+            fetch_symbols,
+            fetch_klines,
+            switch_kline_stream,
+            stop_kline_stream,
+            fetch_overview,
+            fetch_tickers
         ])
         .on_menu_event(|app, event| match event.id().as_ref() {
             // 右键菜单：打开设置窗口
@@ -228,17 +248,29 @@ pub fn run() {
                     println!("[taskbar-crypto-monitor] 设置窗口已请求显示");
                 }
             }
+            // 右键菜单：打开首页主窗口（合约详情 / K 线 / 仓位计算器）
+            "capsule-home" => {
+                println!("[taskbar-crypto-monitor] 菜单事件: capsule-home");
+                if let Some(window) = app.get_webview_window("home") {
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
+            }
             // 右键菜单：退出整个程序
             "capsule-quit" => app.exit(0),
             other => println!("[taskbar-crypto-monitor] 未知菜单事件: {other}"),
         })
         .on_window_event(|window, event| {
-            // 设置窗口点击关闭时仅隐藏而非销毁：保留实例供右键菜单反复打开
+            // 设置/首页窗口点击关闭时仅隐藏而非销毁：保留实例供反复打开
             // （在 Rust 端拦截，不依赖前端权限，修复此前点击关闭无效的问题）
-            if window.label() == "settings" {
+            if window.label() == "settings" || window.label() == "home" {
                 if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                     api.prevent_close();
                     let _ = window.hide();
+                    // 首页隐藏时停掉 K 线实时流，释放长连接
+                    if window.label() == "home" {
+                        klines::stop_kline_stream(window.app_handle().clone());
+                    }
                 }
             }
         })
@@ -281,6 +313,17 @@ pub fn run() {
                     if let Ok(settings_hwnd) = settings.hwnd() {
                         taskbar::set_taskbar_icon(
                             settings_hwnd.0 as windows_sys::Win32::Foundation::HWND,
+                            icon.rgba(),
+                            icon.width() as i32,
+                            icon.height() as i32,
+                        );
+                    }
+                }
+                if let Some(home) = app.get_webview_window("home") {
+                    let _ = home.set_icon(icon.clone());
+                    if let Ok(home_hwnd) = home.hwnd() {
+                        taskbar::set_taskbar_icon(
+                            home_hwnd.0 as windows_sys::Win32::Foundation::HWND,
                             icon.rgba(),
                             icon.width() as i32,
                             icon.height() as i32,
