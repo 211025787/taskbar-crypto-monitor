@@ -306,6 +306,7 @@ pub fn fetch_overview(symbol: String) -> Result<OverviewData, String> {
         quote_volume: resp["quoteVolume"].as_str().and_then(|v| v.parse().ok()).unwrap_or_default(),
     })
 }
+
 /// 合约行情简报（列表涨跌%批量查询用）
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
