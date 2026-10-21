@@ -185,15 +185,6 @@ body,
     border-radius: 8px;
 }
 
-/* 滚动条样式：细条半透明 */
-.ycs-symbol-list::-webkit-scrollbar {
-    width: 8px;
-}
-
-.ycs-symbol-list::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.12);
-    border-radius: 4px;
-}
 
 /* 合约行：可点击按钮 */
 .ycs-symbol-row {
@@ -288,7 +279,7 @@ body,
     filter: brightness(1.1);
 }
 
-/* ===== 深色滚动条（作用域限定防多窗口泄漏；本文件无 --ycs-* 变量，用等值硬编码） ===== */
+/* ===== 深色滚动条（作用域限定防多窗口泄漏；色值硬编码保持本文件自包含（不依赖 bundle 合并顺序）） ===== */
 .ycs-settings ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
