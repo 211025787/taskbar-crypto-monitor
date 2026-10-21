@@ -8,6 +8,25 @@ use std::fs;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
 
+/// 单合约仓位配置（首页计算器持久化数据）
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PositionConfig {
+    /// 合约名（如 BTCUSDT），每合约仅保留一条仓位
+    pub symbol: String,
+    /// 方向："long"（做多）或 "short"（做空）
+    pub direction: String,
+    /// 开仓均价（USDT 计价，正数）
+    pub entry_price: f64,
+    /// 杠杆倍数，有效范围 1 ~ 125
+    pub leverage: i32,
+    /// 持仓数量（以币计，正数）
+    pub quantity: f64,
+    /// 累计已实现盈亏（USDT，历次减仓锁定盈亏之和；旧配置缺省为 0）
+    #[serde(default)]
+    pub realized_pnl: f64,
+}
+
 /// 胶囊显示配置
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
@@ -24,10 +43,12 @@ pub struct CapsuleConfig {
     pub show_sparkline: bool,
     /// 整体缩放系数，有效范围 0.8 ~ 1.4，默认 1.0
     pub scale: f64,
+    /// 各合约的仓位配置集合（首页计算器），每合约至多一条
+    pub positions: Vec<PositionConfig>,
 }
 
 impl Default for CapsuleConfig {
-    /// 默认配置：BTCUSDT 主合约 + 四个字段全部显示，标准缩放
+    /// 默认配置：BTCUSDT 主合约 + 四个字段全部显示，标准缩放，无仓位
     fn default() -> Self {
         Self {
             symbol: "BTCUSDT".to_string(),
@@ -36,6 +57,7 @@ impl Default for CapsuleConfig {
             show_change: true,
             show_sparkline: true,
             scale: 1.0,
+            positions: Vec::new(),
         }
     }
 }
