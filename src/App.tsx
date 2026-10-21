@@ -98,15 +98,28 @@ export default function App() {
         };
     }, []);
 
-    /** 右键胶囊：阻止默认上下文菜单，弹出原生菜单（设置 / 退出） */
+    /** 右键胶囊：阻止默认上下文菜单，弹出原生菜单（首页 / 设置 / 退出） */
     const handleContextMenu = (event: MouseEvent) => {
         event.preventDefault();
         invoke("show_capsule_menu").catch(() => undefined);
     };
 
-    /** 左键胶囊：切换内容显示/隐藏（不挂 data-tauri-drag-region，窗口位置由 Rust 统一管理） */
+    /** 单击延时器：250ms 内未出现第二击才执行隐藏切换（双击打开首页时不误触） */
+    const clickTimerRef = useRef<number | null>(null);
+
+    /** 左键胶囊：单击延时切换内容显示/隐藏；双击打开首页主窗口 */
     const handleClick = () => {
-        setHidden((value) => !value);
+        if (clickTimerRef.current !== null) {
+            // 第二击到达：取消挂起的隐藏切换，改为打开首页
+            window.clearTimeout(clickTimerRef.current);
+            clickTimerRef.current = null;
+            invoke("open_home").catch(() => undefined);
+            return;
+        }
+        clickTimerRef.current = window.setTimeout(() => {
+            clickTimerRef.current = null;
+            setHidden((value) => !value);
+        }, 250);
     };
 
     // 将缩放系数注入 CSS 变量，供字号/间距/图形尺寸的 calc 表达式使用

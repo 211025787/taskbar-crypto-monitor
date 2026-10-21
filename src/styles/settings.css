@@ -257,3 +257,22 @@ body,
     font-size: 11px;
     color: rgba(107, 114, 128, 0.85);
 }
+/* ===== 打开首页入口按钮 ===== */
+
+.ycs-open-home {
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    color: #f9fafb;
+    background: linear-gradient(160deg, rgba(62, 108, 192, 0.85), rgba(30, 44, 84, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 9px;
+    cursor: pointer;
+    transition: border-color 0.12s ease-out, filter 0.12s ease-out;
+}
+
+.ycs-open-home:hover {
+    border-color: rgba(245, 202, 85, 0.7);
+    filter: brightness(1.1);
+}

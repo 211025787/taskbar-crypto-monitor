@@ -113,6 +113,14 @@ export default function Settings() {
             <h1 className="ycs-settings__title">胶囊显示设置</h1>
             <p className="ycs-settings__hint">在任务栏胶囊上点击右键可打开菜单；修改即时生效并自动保存。</p>
 
+            <button
+                type="button"
+                className="ycs-open-home"
+                onClick={() => invoke("open_home").catch(() => undefined)}
+            >
+                打开首页（合约详情 / K 线 / 仓位计算器）
+            </button>
+
             <section className="ycs-settings__section">
                 <h2 className="ycs-settings__section-title">合约选择</h2>
                 <div className="ycs-symbol-current">

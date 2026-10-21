@@ -1,0 +1,115 @@
+<h2>首页改版：3 个布局方向</h2>
+<p class="subtitle">当前窗口是 1081×362 的超扁比例，mockup 按真实比例绘制（金色=品牌强调，绿=涨，红=跌）</p>
+
+<style>
+    .bm { font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif; background: #0a0e1a; border: 1px solid rgba(255,255,255,0.14); border-radius: 8px; padding: 8px; color: #e8ecf5; overflow: hidden; }
+    .bm .bar { display: flex; align-items: center; gap: 10px; padding: 5px 10px; background: #141e33; border-radius: 6px; font-size: 11px; }
+    .bm .sym { color: #f5ca55; font-weight: 700; }
+    .bm .up { color: #34d399; }
+    .bm .mut { color: #8a93a8; }
+    .bm .chip { background: #1a2643; border-radius: 4px; padding: 1px 6px; font-size: 10px; color: #8a93a8; }
+    .bm .pane { background: #141e33; border-radius: 6px; padding: 6px 8px; font-size: 10px; }
+    .bm .pane h5 { margin: 0 0 4px; font-size: 10px; color: #8a93a8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .bm .row { display: flex; justify-content: space-between; margin: 2px 0; }
+    .bm .row b { font-weight: 600; }
+    .bm .gold-btn { background: #f5ca55; color: #0a0e1a; border-radius: 4px; padding: 2px 0; text-align: center; font-weight: 700; font-size: 10px; margin-top: 4px; }
+    .bm .ghost-btn { border: 1px solid rgba(255,255,255,0.14); border-radius: 4px; padding: 2px 0; text-align: center; font-size: 10px; color: #e8ecf5; margin-top: 4px; }
+    .bm .kline { background: repeating-linear-gradient(90deg, #141e33 0 14px, #1a2643 14px 16px); border-radius: 6px; display: flex; align-items: flex-end; }
+    .bm .kline div { width: 3px; background: #34d399; margin: 0 2px; border-radius: 1px; }
+    .bm .tabs { display: flex; gap: 4px; }
+    .bm .tab { background: #1a2643; color: #f5ca55; border-bottom: 2px solid #f5ca55; border-radius: 4px 4px 0 0; padding: 2px 10px; font-size: 10px; font-weight: 600; }
+    .bm .tab2 { background: transparent; color: #8a93a8; border-radius: 4px 4px 0 0; padding: 2px 10px; font-size: 10px; }
+    .bm .list-item { display: flex; justify-content: space-between; padding: 2px 6px; font-size: 10px; border-radius: 3px; }
+    .bm .list-item.on { background: #1a2643; outline: 1px solid rgba(245,202,85,0.4); }
+</style>
+
+<div class="cards">
+    <div class="card" data-choice="A" onclick="toggleSelect(this)">
+        <div class="card-image"><div class="bm" style="height: 200px; display: flex; flex-direction: column; gap: 6px;">
+            <div class="bar">
+                <span class="sym">BTCUSDT</span>
+                <span style="font-size: 13px; font-weight: 700;">82,789.30</span>
+                <span class="up">+1.52%</span>
+                <span class="mut">高 83,210 · 低 81,442 · 额 73.8亿</span>
+                <span class="chip">⟳ 12:08:35</span>
+                <span style="margin-left: auto;" class="chip">15m · 1h · 4h</span>
+            </div>
+            <div style="display: flex; gap: 6px; flex: 1; min-height: 0;">
+                <div class="kline" style="flex: 2.2;">
+                    <div style="height: 40%"></div><div style="height: 55%"></div><div style="height: 35%"></div><div style="height: 60%"></div><div style="height: 75%"></div><div style="height: 50%"></div><div style="height: 65%"></div><div style="height: 80%"></div><div style="height: 58%"></div><div style="height: 70%"></div><div style="height: 45%"></div><div style="height: 62%"></div><div style="height: 78%"></div><div style="height: 52%"></div>
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+                    <div class="pane">
+                        <h5>当前持仓 · 多 10×</h5>
+                        <div class="row"><span class="mut">均价 / 数量</span><b>0.9500 · 20</b></div>
+                        <div class="row"><span class="mut">浮盈 / 回报</span><b class="up">+1.60 · +8.4%</b></div>
+                        <div class="row"><span class="mut">累计已实现</span><b class="up">+0.50</b></div>
+                        <div class="row"><span class="mut">强平价</span><b>0.8565</b></div>
+                    </div>
+                    <div class="pane">
+                        <h5>模拟操作 → 应用</h5>
+                        <div class="row"><span class="mut">减仓 10 @ 0.90</span><b class="up">实现 +1.00</b></div>
+                        <div class="gold-btn">✓ 应用到仓位</div>
+                    </div>
+                </div>
+            </div>
+        </div></div>
+        <div class="card-body">
+            <h3>A · 持仓中心双列（推荐）</h3>
+            <p>行情压成一行数据带；K 线与持仓卡左右并排，一屏零滚动。持仓卡常显浮盈/累计已实现，模拟操作紧贴其下，点"应用"即更新仓位</p>
+        </div>
+    </div>
+
+    <div class="card" data-choice="B" onclick="toggleSelect(this)">
+        <div class="card-image"><div class="bm" style="height: 200px; display: flex; flex-direction: column; gap: 6px;">
+            <div class="bar" style="padding: 3px 10px 0; background: transparent;">
+                <div class="tabs">
+                    <div class="tab">行情</div>
+                    <div class="tab2">持仓</div>
+                </div>
+                <span style="margin-left: auto;" class="chip">BTCUSDT · 82,789.30 · +1.52%</span>
+            </div>
+            <div style="display: flex; gap: 6px; flex: 1; min-height: 0;">
+                <div style="width: 120px; display: flex; flex-direction: column; gap: 3px; padding: 4px; background: #0f1626; border-radius: 6px;">
+                    <div class="list-item on"><span class="sym">BTC</span><span class="up">+1.5%</span></div>
+                    <div class="list-item"><span>BTCDOM</span><span class="mut">-0.3%</span></div>
+                    <div class="list-item"><span>ETH</span><span class="up">+2.1%</span></div>
+                    <div class="list-item"><span>SOL</span><span class="up">+4.8%</span></div>
+                    <div class="list-item"><span>1000PEPE</span><span class="up">+6.0%</span></div>
+                    <div class="list-item" style="color: #3d475e;"><span>搜索…</span></div>
+                </div>
+                <div class="kline" style="flex: 1;">
+                    <div style="height: 45%"></div><div style="height: 60%"></div><div style="height: 38%"></div><div style="height: 66%"></div><div style="height: 78%"></div><div style="height: 52%"></div><div style="height: 68%"></div><div style="height: 82%"></div><div style="height: 56%"></div><div style="height: 72%"></div>
+                </div>
+            </div>
+        </div></div>
+        <div class="card-body">
+            <h3>B · 行情 / 持仓双 Tab</h3>
+            <p>两个 Tab 各自单屏零滚动：行情页 = 自选列表 + K 线；持仓页 = 仓位卡 + 模拟 + 应用。合约列表升级为带涨跌的自选模式。缺点：持仓操作时看不到 K 线</p>
+        </div>
+    </div>
+
+    <div class="card" data-choice="C" onclick="toggleSelect(this)">
+        <div class="card-image"><div class="bm" style="height: 200px; display: flex; flex-direction: column; gap: 5px;">
+            <div class="bar">
+                <span class="sym">BTCUSDT</span>
+                <span style="font-size: 13px; font-weight: 700;">82,789.30</span>
+                <span class="up">+1.52%</span>
+                <span class="mut">高 83,210 · 低 81,442</span>
+                <span class="chip">⟳ 12:08:35</span>
+            </div>
+            <div class="pane" style="display: flex; gap: 12px; align-items: center;">
+                <span class="sym">持仓 多 10×</span>
+                <span>均价 <b>0.95</b></span><span>数量 <b>20</b></span><span class="up">浮盈 <b>+1.60</b></span><span class="up">已实现 <b>+0.50</b></span>
+                <span style="margin-left: auto; color: #8a93a8; font-size: 9px;">展开操作 ▾</span>
+            </div>
+            <div class="kline" style="flex: 1;">
+                <div style="height: 42%"></div><div style="height: 58%"></div><div style="height: 36%"></div><div style="height: 64%"></div><div style="height: 76%"></div><div style="height: 50%"></div><div style="height: 67%"></div><div style="height: 80%"></div><div style="height: 55%"></div><div style="height: 70%"></div><div style="height: 46%"></div><div style="height: 63%"></div>
+            </div>
+        </div></div>
+        <div class="card-body">
+            <h3>C · 持仓条 + 折叠操作区</h3>
+            <p>保留单列流但持仓压成一条横幅常显（点开展开模拟+应用），K 线占满剩余高度。改动最小，但操作区展开后仍要滚动</p>
+        </div>
+    </div>
+</div>

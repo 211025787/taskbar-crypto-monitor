@@ -1,0 +1,131 @@
+<h2>方案 A 完整版：两屏状态</h2>
+<p class="subtitle">左栏合约列表加上涨跌%（信息更清晰）；右侧持仓栏的两种状态——有仓位时显示持仓+模拟，无仓位时就是新建表单</p>
+
+<style>
+    .bm2 { font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif; background: #0a0e1a; border: 1px solid rgba(255,255,255,0.14); border-radius: 8px; padding: 8px; color: #e8ecf5; overflow: hidden; }
+    .bm2 .bar { display: flex; align-items: center; gap: 10px; padding: 5px 10px; background: #141e33; border-radius: 6px; font-size: 11px; }
+    .bm2 .sym { color: #f5ca55; font-weight: 700; }
+    .bm2 .up { color: #34d399; }
+    .bm2 .down { color: #f87171; }
+    .bm2 .mut { color: #8a93a8; }
+    .bm2 .chip { background: #1a2643; border-radius: 4px; padding: 1px 6px; font-size: 10px; color: #8a93a8; }
+    .bm2 .chip.on { color: #f5ca55; outline: 1px solid rgba(245,202,85,0.5); }
+    .bm2 .pane { background: #141e33; border-radius: 6px; padding: 6px 8px; font-size: 10px; }
+    .bm2 .pane h5 { margin: 0 0 4px; font-size: 10px; color: #8a93a8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; }
+    .bm2 .row { display: flex; justify-content: space-between; margin: 2px 0; }
+    .bm2 .row b { font-weight: 600; }
+    .bm2 .gold-btn { background: #f5ca55; color: #0a0e1a; border-radius: 4px; padding: 3px 0; text-align: center; font-weight: 700; font-size: 10px; margin-top: 5px; }
+    .bm2 .ghost-btn { border: 1px solid rgba(255,255,255,0.14); border-radius: 4px; padding: 2px 0; text-align: center; font-size: 10px; color: #e8ecf5; margin-top: 4px; }
+    .bm2 .kline { background: repeating-linear-gradient(90deg, #141e33 0 14px, #1a2643 14px 16px); border-radius: 6px; display: flex; align-items: flex-end; position: relative; }
+    .bm2 .kline div { width: 3px; background: #34d399; margin: 0 2px; border-radius: 1px; }
+    .bm2 .sidebar { width: 128px; background: #0f1626; border-radius: 6px; padding: 4px; display: flex; flex-direction: column; gap: 2px; }
+    .bm2 .search { border: 1px solid rgba(255,255,255,0.14); border-radius: 4px; padding: 2px 6px; font-size: 9px; color: #8a93a8; margin-bottom: 2px; }
+    .bm2 .li { display: flex; justify-content: space-between; padding: 2px 6px; font-size: 9px; border-radius: 3px; color: #e8ecf5; }
+    .bm2 .li.on { background: #1a2643; outline: 1px solid rgba(245,202,85,0.4); }
+    .bm2 .li .p { color: #8a93a8; font-size: 8px; }
+    .bm2 .fld { display: flex; gap: 4px; margin: 3px 0; }
+    .bm2 .fld input { flex: 1; border: 1px solid rgba(255,255,255,0.14); border-radius: 4px; padding: 2px 6px; font-size: 9px; color: #e8ecf5; background: #0f1626; }
+    .bm2 .seg { display: flex; gap: 3px; }
+    .bm2 .seg span { flex: 1; text-align: center; border-radius: 4px; padding: 2px 0; font-size: 9px; background: #1a2643; color: #8a93a8; }
+    .bm2 .seg span.on-l { background: rgba(52,211,153,0.18); color: #34d399; outline: 1px solid rgba(52,211,153,0.4); }
+    .bm2 .seg span.on-s { background: rgba(248,113,113,0.18); color: #f87171; outline: 1px solid rgba(248,113,113,0.4); }
+    .bm2 .warn { border: 1px dashed rgba(245,202,85,0.5); border-radius: 4px; padding: 2px 6px; font-size: 9px; color: #f5ca55; margin-top: 3px; }
+</style>
+
+<div class="section">
+    <div class="label">状态 1 · 有仓位（右栏 = 持仓卡 + 模拟操作 → 应用）</div>
+    <div class="mockup"><div class="mockup-body"><div class="bm2" style="height: 215px; display: flex; gap: 6px;">
+        <div class="sidebar">
+            <div class="search">搜索 BTC / SOL…</div>
+            <div class="li on"><span>BTCUSDT</span><span class="up">+1.5%</span></div>
+            <div class="li"><span>ETHUSDT</span><span class="up">+2.1%</span></div>
+            <div class="li"><span>SOLUSDT</span><span class="up">+4.8%</span></div>
+            <div class="li"><span>1000PEPE</span><span class="up">+6.0%</span></div>
+            <div class="li"><span>BTCDOMUSDT</span><span class="down">-0.3%</span></div>
+            <div class="li"><span>DOGEUSDT</span><span class="up">+3.2%</span></div>
+            <div class="li"><span>ARBUSDT</span><span class="down">-1.1%</span></div>
+            <div class="li"><span class="p">… 更多</span></div>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+            <div class="bar">
+                <span class="sym">BTCUSDT</span>
+                <span style="font-size: 13px; font-weight: 700;">82,789.30</span>
+                <span class="up">+1.52%</span>
+                <span class="mut">高 83,210 · 低 81,442 · 额 73.8亿</span>
+                <span class="chip">⟳ 12:08:35</span>
+                <span style="margin-left: auto; display: flex; gap: 3px;">
+                    <span class="chip">15m</span><span class="chip">1h</span><span class="chip on">4h</span><span class="chip">1d</span>
+                </span>
+            </div>
+            <div style="display: flex; gap: 6px; flex: 1; min-height: 0;">
+                <div class="kline" style="flex: 2.2;">
+                    <div style="height: 40%"></div><div style="height: 55%"></div><div style="height: 35%"></div><div style="height: 60%"></div><div style="height: 75%"></div><div style="height: 50%"></div><div style="height: 65%"></div><div style="height: 80%"></div><div style="height: 58%"></div><div style="height: 70%"></div><div style="height: 45%"></div><div style="height: 62%"></div><div style="height: 78%"></div><div style="height: 52%"></div><div style="height: 66%"></div>
+                </div>
+                <div style="flex: 1.1; display: flex; flex-direction: column; gap: 6px;">
+                    <div class="pane">
+                        <h5><span>当前持仓</span><span>多 · 10×</span></h5>
+                        <div class="row"><span class="mut">均价 / 数量</span><b>0.9500 · 20</b></div>
+                        <div class="row"><span class="mut">保证金</span><b>1.90 USDT</b></div>
+                        <div class="row"><span class="mut">浮盈 / 回报率</span><b class="up">+1.60 · +8.4%</b></div>
+                        <div class="row"><span class="mut">累计已实现</span><b class="up">+0.50</b></div>
+                        <div class="row"><span class="mut">强平价 / 距离</span><b>0.8565 · 9.8%</b></div>
+                    </div>
+                    <div class="pane" style="flex: 1;">
+                        <h5><span>模拟操作</span><span>仅预览</span></h5>
+                        <div class="seg"><span class="on-l">加仓</span><span>减仓</span></div>
+                        <div class="fld"><input value="0.90"><input value="10"></div>
+                        <div class="row"><span class="mut">结果：均价 0.95 → 0.950</span><b class="up">+已实现 1.00</b></div>
+                        <div class="gold-btn">✓ 应用到仓位</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div></div></div>
+</div>
+
+<div class="section">
+    <div class="label">状态 2 · 无仓位（右栏 = 新建仓位表单，即原基础计算器）</div>
+    <div class="mockup"><div class="mockup-body"><div class="bm2" style="height: 215px; display: flex; gap: 6px;">
+        <div class="sidebar">
+            <div class="search">搜索 BTC / SOL…</div>
+            <div class="li on"><span>BTCUSDT</span><span class="up">+1.5%</span></div>
+            <div class="li"><span>ETHUSDT</span><span class="up">+2.1%</span></div>
+            <div class="li"><span>SOLUSDT</span><span class="up">+4.8%</span></div>
+            <div class="li"><span class="p">… 更多</span></div>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+            <div class="bar">
+                <span class="sym">BTCUSDT</span>
+                <span style="font-size: 13px; font-weight: 700;">82,789.30</span>
+                <span class="up">+1.52%</span>
+                <span class="mut">高 83,210 · 低 81,442</span>
+                <span class="chip">⟳ 12:08:35</span>
+            </div>
+            <div style="display: flex; gap: 6px; flex: 1; min-height: 0;">
+                <div class="kline" style="flex: 2.2;">
+                    <div style="height: 45%"></div><div style="height: 60%"></div><div style="height: 38%"></div><div style="height: 66%"></div><div style="height: 78%"></div><div style="height: 52%"></div><div style="height: 68%"></div><div style="height: 82%"></div>
+                </div>
+                <div style="flex: 1.1;">
+                    <div class="pane" style="height: 100%; display: flex; flex-direction: column;">
+                        <h5><span>新建仓位</span><span>按最新价预览</span></h5>
+                        <div class="seg"><span class="on-l">做多</span><span>做空</span></div>
+                        <div class="fld"><input value="开仓价 0.95"><input value="杠杆 10"></div>
+                        <div class="fld"><input value="数量 20"></div>
+                        <div class="row"><span class="mut">保证金</span><b>1.90 USDT</b></div>
+                        <div class="row"><span class="mut">按最新价盈亏</span><b class="up">+1.60 · +8.4%</b></div>
+                        <div class="row"><span class="mut">强平价</span><b>0.8565</b></div>
+                        <div class="gold-btn" style="margin-top: auto;">保存仓位</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div></div></div>
+</div>
+
+<div class="section">
+    <p class="subtitle">两个设计决定请确认（终端里回答即可）：</p>
+    <ul>
+        <li><b>新开仓入口</b>：无仓位时右栏自动变成"新建仓位"表单（不再单独占一块）</li>
+        <li><b>"应用"防误触</b>：点击后按钮先变"确认应用？"，再点一次才真正写入（两段式，无弹窗）</li>
+    </ul>
+</div>

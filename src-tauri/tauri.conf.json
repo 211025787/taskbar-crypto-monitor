@@ -35,6 +35,19 @@
                 "resizable": false,
                 "skipTaskbar": false,
                 "shadow": true
+            },
+            {
+                "label": "home",
+                "title": "首页 - Taskbar Crypto Monitor",
+                "width": 1100,
+                "height": 700,
+                "minWidth": 900,
+                "minHeight": 600,
+                "center": true,
+                "visible": false,
+                "resizable": true,
+                "skipTaskbar": false,
+                "shadow": true
             }
         ],
         "security": {
