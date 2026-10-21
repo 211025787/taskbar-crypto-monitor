@@ -1,0 +1,768 @@
+/* ===== 首页主窗口：深色金融终端（product register · DENSITY 8 · SPECTACLE 2） ===== */
+
+/* 设计 token（OKLCH 推导的十六进制）：中性色统一向品牌蓝倾斜，禁纯黑纯白 */
+:root {
+    /* Void (#0A0E1A) — 页面背景。近黑蓝，向品牌色相倾斜 */
+    --ycs-bg: #0a0e1a;
+    /* Abyss (#0F1626) — 侧栏底。比背景亮一档的表面 */
+    --ycs-side: #0f1626;
+    /* Shelf (#141E33) — 卡片/面板表面 */
+    --ycs-surface: #141e33;
+    /* Shelf-Raised (#1A2643) — 悬停/激活表面 */
+    --ycs-surface-raised: #1a2643;
+    /* Star Dust (#E8ECF5) — 主文字。微冷白，禁纯白 */
+    --ycs-ink: #e8ecf5;
+    /* Fog (#8A93A8) — 次要文字（说明/标签） */
+    --ycs-muted: #8a93a8;
+    /* Iron (#3D475E) — 三级文字与发丝线 */
+    --ycs-dim: #3d475e;
+    /* Gold (#F5CA55) — 品牌强调色。选中态指示条/周期药丸/品牌标 */
+    --ycs-gold: #f5ca55;
+    /* Rally (#34D399) — 上涨语义色（与胶囊一致） */
+    --ycs-up: #34d399;
+    /* Dump (#F87171) — 下跌语义色（与胶囊一致） */
+    --ycs-down: #f87171;
+    /* 半透明边框（深色页面 7%~18% 白） */
+    --ycs-border: rgba(255, 255, 255, 0.07);
+    --ycs-border-strong: rgba(255, 255, 255, 0.14);
+}
+
+/* 全局 reset：禁止设置背景色——多窗口共用同一份打包 CSS，
+   全局背景会泄漏到透明胶囊窗口使其变黑；首页背景仅作用于 .ycs-home 容器 */
+html,
+body,
+#root {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    color: var(--ycs-ink);
+    font-family: "Segoe UI Variable Display", "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif;
+}
+
+/* 全局数字：等宽表格数字，防行情刷新跳动 */
+.ycs-home input,
+.ycs-marketbar__price,
+.ycs-marketbar__change,
+.ycs-marketbar__extra,
+.ycs-marketbar__time,
+.ycs-poscard__value,
+.ycs-home__symbol-change,
+.ycs-calc__result-value,
+.ycs-chart__ohlc {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ===== 布局骨架：左栏 300px 搜索 + 右区（数据带 + 图/仓位双列） ===== */
+
+.ycs-home {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    /* 页面背景限定在首页容器：避免全局选择器污染透明胶囊窗口 */
+    background: var(--ycs-bg);
+    /* 零滚动：超扁窗口尺寸即页面尺寸，溢出一律裁剪 */
+    overflow: hidden;
+}
+
+/* 噪点纹理层：静态 feTurbulence 颗粒，消除扁平矢量感（product 低透明度） */
+.ycs-home::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.028;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ===== 侧栏 ===== */
+
+.ycs-home__sidebar {
+    display: flex;
+    flex-direction: column;
+    /* border-box：300px 总宽含内边距，防 content-box 撑到 324px */
+    box-sizing: border-box;
+    width: 300px;
+    flex-shrink: 0;
+    background: var(--ycs-side);
+    padding: 14px 12px;
+    overflow: hidden;
+}
+
+.ycs-home__brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 16px;
+    padding: 0 6px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ycs-ink);
+}
+
+.ycs-home__brand-mark {
+    color: var(--ycs-gold);
+    font-size: 13px;
+}
+
+.ycs-home__search {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 9px 12px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--ycs-ink);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--ycs-border);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.15s ease-out, background-color 0.15s ease-out;
+}
+
+.ycs-home__search::placeholder {
+    color: var(--ycs-dim);
+}
+
+.ycs-home__search:hover {
+    border-color: var(--ycs-border-strong);
+}
+
+.ycs-home__search:focus {
+    border-color: var(--ycs-gold);
+    background: rgba(245, 202, 85, 0.04);
+}
+
+.ycs-home__list-status {
+    padding: 8px 6px;
+    font-size: 12px;
+    color: var(--ycs-muted);
+}
+
+.ycs-home__list-status--warn {
+    color: var(--ycs-gold);
+}
+
+.ycs-home__list {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+    /* 极淡滚动条：宽度随内容暗示 */
+    scrollbar-width: thin;
+    scrollbar-color: var(--ycs-dim) transparent;
+}
+
+.ycs-home__symbol {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    font-family: inherit;
+    color: var(--ycs-muted);
+    background: transparent;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background-color 0.12s ease-out, color 0.12s ease-out;
+}
+
+.ycs-home__symbol:hover {
+    color: var(--ycs-ink);
+    background: var(--ycs-surface-raised);
+}
+
+.ycs-home__symbol--active {
+    color: var(--ycs-ink);
+    background: var(--ycs-surface-raised);
+}
+
+/* 选中态左侧金色指示条：3px 宽、垂直居中 */
+.ycs-home__symbol--active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 3px;
+    height: 18px;
+    background: var(--ycs-gold);
+    border-radius: 2px;
+}
+
+.ycs-home__symbol-name {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+/* 列表项右侧 24h 涨跌%（--up/--down 语义色，无数据时中性灰占位） */
+.ycs-home__symbol-change {
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ycs-muted);
+    flex-shrink: 0;
+}
+
+.ycs-home__symbol-change--up {
+    color: var(--ycs-up);
+}
+
+.ycs-home__symbol-change--down {
+    color: var(--ycs-down);
+}
+
+/* ===== 主区：数据带 + 图/仓位双列 ===== */
+
+.ycs-home__main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px 12px;
+    gap: 8px;
+    overflow: hidden;
+}
+
+/* 主区双列：K 线占大头 + 右栏仓位面板固定宽 */
+.ycs-home__body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    gap: 10px;
+    overflow: hidden;
+}
+
+/* ===== 行情数据带（一行：合约/价格/涨跌/高低额/状态/刷新/周期） ===== */
+
+.ycs-marketbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    /* border-box：34px 总高含上下边框 */
+    box-sizing: border-box;
+    height: 34px;
+    padding: 0 12px;
+    background: var(--ycs-surface);
+    border: 1px solid var(--ycs-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.ycs-marketbar__symbol {
+    color: var(--ycs-gold);
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.ycs-marketbar__price {
+    font-size: 16px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+.ycs-marketbar--up .ycs-marketbar__price,
+.ycs-marketbar--up .ycs-marketbar__change {
+    color: var(--ycs-up);
+}
+
+.ycs-marketbar--down .ycs-marketbar__price,
+.ycs-marketbar--down .ycs-marketbar__change {
+    color: var(--ycs-down);
+}
+
+.ycs-marketbar__change {
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+.ycs-marketbar__extra {
+    color: var(--ycs-muted);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.ycs-marketbar__status {
+    color: var(--ycs-muted);
+    font-size: 10px;
+    flex-shrink: 0;
+}
+
+.ycs-marketbar__refresh {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.ycs-marketbar__time {
+    color: var(--ycs-dim);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+}
+
+.ycs-marketbar__refresh-btn {
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 6px;
+    background: var(--ycs-surface-raised);
+    color: var(--ycs-muted);
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.ycs-marketbar__refresh-btn:hover {
+    color: var(--ycs-ink);
+}
+
+.ycs-marketbar .ycs-intervals {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+/* ===== K 线面板（自适应画布） ===== */
+
+.ycs-chart-panel {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--ycs-surface);
+    border: 1px solid var(--ycs-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.ycs-chart-panel__error {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--ycs-muted);
+    font-size: 12px;
+}
+
+.ycs-chart-panel__error button {
+    padding: 5px 18px;
+    border: none;
+    border-radius: 6px;
+    background: var(--ycs-gold);
+    color: var(--ycs-bg);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* 周期药丸：数据带内裸药丸（999px 圆角），激活态金底 */
+.ycs-intervals__btn {
+    padding: 3px 10px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ycs-muted);
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.ycs-intervals__btn:hover {
+    color: var(--ycs-ink);
+}
+
+.ycs-intervals__btn--active {
+    background: var(--ycs-gold);
+    color: var(--ycs-bg);
+    font-weight: 600;
+}
+
+/* ===== 蜡烛图 ===== */
+
+.ycs-chart {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.ycs-chart__ohlc {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 4px;
+    font-size: 11px;
+    color: var(--ycs-muted);
+}
+
+.ycs-chart__ohlc--up {
+    color: var(--ycs-up);
+}
+
+.ycs-chart__ohlc--down {
+    color: var(--ycs-down);
+}
+
+.ycs-chart__canvas-wrap {
+    position: relative;
+    flex: 1;
+    min-height: 240px;
+}
+
+.ycs-chart__canvas {
+    display: block;
+    cursor: crosshair;
+}
+
+.ycs-chart__empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--ycs-dim);
+}
+
+/* ===== 仓位表单子元素（新建表单 / 模拟操作卡复用 .ycs-calc__field 系列） ===== */
+
+.ycs-calc__field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.ycs-calc__label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ycs-muted);
+}
+
+.ycs-calc__direction {
+    display: flex;
+    gap: 4px;
+    padding: 3px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 9px;
+}
+
+.ycs-calc__dir-btn {
+    flex: 1;
+    padding: 7px 0;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    color: var(--ycs-muted);
+    background: transparent;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: color 0.12s ease-out, background-color 0.12s ease-out;
+}
+
+.ycs-calc__dir-btn--long {
+    color: #06281c;
+    background: var(--ycs-up);
+}
+
+.ycs-calc__dir-btn--short {
+    color: #2b0a0a;
+    background: var(--ycs-down);
+}
+
+.ycs-calc__input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 8px 11px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--ycs-ink);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--ycs-border);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.15s ease-out;
+}
+
+.ycs-calc__input:hover {
+    border-color: var(--ycs-border-strong);
+}
+
+.ycs-calc__input:focus {
+    border-color: var(--ycs-gold);
+}
+
+.ycs-calc__input::placeholder {
+    color: var(--ycs-dim);
+}
+
+/* ===== 计算结果格（新建预览 / 模拟预览复用） ===== */
+
+.ycs-calc__result {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--ycs-border);
+    border-radius: 9px;
+}
+
+.ycs-calc__result-label {
+    font-size: 11px;
+    color: var(--ycs-muted);
+}
+
+.ycs-calc__result-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ycs-ink);
+}
+
+.ycs-calc__result--up .ycs-calc__result-value {
+    color: var(--ycs-up);
+}
+
+.ycs-calc__result--down .ycs-calc__result-value {
+    color: var(--ycs-down);
+}
+
+/* ===== 右栏仓位面板（持仓卡 + 模拟 / 新建表单） ===== */
+
+.ycs-panel {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    flex-shrink: 0;
+    gap: 8px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.ycs-poscard {
+    background: var(--ycs-surface);
+    border: 1px solid var(--ycs-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+.ycs-poscard__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.ycs-poscard__title {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ycs-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ycs-poscard__dir {
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.ycs-poscard__dir--long {
+    color: var(--ycs-up);
+}
+
+.ycs-poscard__dir--short {
+    color: var(--ycs-down);
+}
+
+.ycs-poscard__closed {
+    padding: 1px 8px;
+    border-radius: 999px;
+    border: 1px dashed rgba(245, 202, 85, 0.6);
+    color: var(--ycs-gold);
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.ycs-poscard__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3px 0;
+    font-size: 11px;
+}
+
+.ycs-poscard__label {
+    color: var(--ycs-muted);
+    flex-shrink: 0;
+    margin-right: 10px;
+}
+
+.ycs-poscard__value {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    word-break: break-all;
+}
+
+.ycs-poscard__row--up .ycs-poscard__value {
+    color: var(--ycs-up);
+}
+
+.ycs-poscard__row--down .ycs-poscard__value {
+    color: var(--ycs-down);
+}
+
+/* 新建仓位表单（复用 .ycs-calc__field 系列；首行方向选择跨双列） */
+.ycs-newpos__form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    padding: 10px 12px;
+    background: var(--ycs-surface);
+    border: 1px solid var(--ycs-border);
+    border-radius: 8px;
+}
+
+.ycs-newpos__form .ycs-calc__field:first-child {
+    grid-column: 1 / -1;
+}
+
+.ycs-newpos__results {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.ycs-newpos__hint {
+    padding: 0 4px;
+    color: var(--ycs-muted);
+    font-size: 10px;
+}
+
+.ycs-newpos__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ycs-newpos__save,
+.ycs-newpos__remove {
+    padding: 7px 0;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.ycs-newpos__save {
+    background: var(--ycs-gold);
+    color: var(--ycs-bg);
+}
+
+.ycs-newpos__save:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.ycs-newpos__remove {
+    background: transparent;
+    border: 1px solid var(--ycs-border-strong);
+    color: var(--ycs-muted);
+    font-weight: 400;
+}
+
+.ycs-newpos__remove:hover {
+    color: var(--ycs-down);
+    border-color: rgba(248, 113, 113, 0.4);
+}
+
+/* ===== 加减仓模拟子面板 ===== */
+
+.ycs-sim {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed var(--ycs-border-strong);
+    border-radius: 10px;
+}
+
+.ycs-sim__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.ycs-sim__title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ycs-ink);
+}
+
+.ycs-sim__badge {
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ycs-gold);
+    background: rgba(245, 202, 85, 0.1);
+    border-radius: 6px;
+}
+
+.ycs-sim__form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    margin-bottom: 12px;
+}
+
+.ycs-sim__results {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+}
+
+.ycs-sim__hint {
+    min-height: 16px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--ycs-dim);
+}
+
+/* 应用按钮：普通态金底，确认态红底（两段式防误触） */
+.ycs-sim__apply {
+    padding: 7px 0;
+    border: none;
+    border-radius: 6px;
+    background: var(--ycs-gold);
+    color: var(--ycs-bg);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.ycs-sim__apply:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.ycs-sim__apply--confirm {
+    background: var(--ycs-down);
+    color: var(--ycs-ink);
+}
