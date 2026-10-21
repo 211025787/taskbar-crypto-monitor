@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { DEFAULT_CONFIG, type CapsuleConfig, type TickerData } from "./types";
+import { computePosition } from "./calc";
+import { DEFAULT_CONFIG, type CapsuleConfig, type Position, type TickerData } from "./types";
 import "./styles/capsule.css";
 
 /** 趋势数据点（当前由实时价格流构建，后续阶段接入 Binance Kline 历史数据拼接） */
@@ -129,6 +130,11 @@ export default function App() {
     const areaPath = useMemo(() => (polyline ? buildAreaPath(polyline) : ""), [polyline]);
     const isUp = (ticker?.changePercent ?? 0) >= 0;
 
+    /** 胶囊主合约的有效持仓（数量>0 才显示盈亏；全平/无仓位不渲染该字段） */
+    const position: Position | null = config.positions.find((item) => item.symbol === config.symbol && item.quantity > 0) ?? null;
+    /** 实时浮盈（USDT，与首页持仓卡"浮盈"同口径；null = 无仓位、暂无行情或仓位输入非法） */
+    const pnl = position !== null && ticker !== null ? (computePosition(position, ticker.price)?.pnl ?? null) : null;
+
     return (
         <div
             className={`ycs-capsule ${isUp ? "ycs-capsule--up" : "ycs-capsule--down"}`}
@@ -142,6 +148,12 @@ export default function App() {
                     {config.showPrice && <span className="ycs-price">{ticker ? formatPrice(ticker.price) : "—"}</span>}
                     {config.showChange && (
                         <span className="ycs-change">{ticker ? `${isUp ? "+" : ""}${ticker.changePercent.toFixed(2)}%` : "—"}</span>
+                    )}
+                    {config.showPnl && pnl !== null && (
+                        <span className={`ycs-pnl ${pnl >= 0 ? "ycs-pnl--up" : "ycs-pnl--down"}`}>
+                            {pnl >= 0 ? "+" : ""}
+                            {pnl.toFixed(2)}u
+                        </span>
                     )}
                     {config.showSparkline && (
                         <svg

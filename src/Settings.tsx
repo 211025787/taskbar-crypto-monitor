@@ -185,6 +185,12 @@ export default function Settings() {
                         checked={config.showSparkline}
                         onChange={(value) => update({ showSparkline: value })}
                     />
+                    <FieldRow
+                        label="显示盈亏"
+                        description="任务栏胶囊实时显示当前持仓浮盈（USDT）"
+                        checked={config.showPnl}
+                        onChange={(value) => update({ showPnl: value })}
+                    />
                 </section>
 
                 <section className="ycs-settings__section">
