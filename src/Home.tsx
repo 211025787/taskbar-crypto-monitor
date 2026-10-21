@@ -4,7 +4,17 @@ import { listen } from "@tauri-apps/api/event";
 import CandleChart from "./CandleChart";
 import PositionCalculator from "./PositionCalculator";
 import { formatPrice, formatVolume } from "./calc";
-import { DEFAULT_CONFIG, KLINE_INTERVALS, type CapsuleConfig, type Kline, type KlineInterval, type KlineStatus, type MarketOverview, type SymbolList, type TickerBrief } from "./types";
+import {
+    DEFAULT_CONFIG,
+    KLINE_INTERVALS,
+    type CapsuleConfig,
+    type Kline,
+    type KlineInterval,
+    type KlineStatus,
+    type MarketOverview,
+    type SymbolList,
+    type TickerBrief,
+} from "./types";
 import "./styles/home.css";
 
 /** 首屏拉取的 K 线根数（与 Rust 侧环形缓冲容量一致） */
@@ -16,7 +26,8 @@ const OVERVIEW_POLL_MS = 10000;
 /** kline-update 事件的合帧间隔（毫秒）：WS 推送频繁，按此节流批量更新 state */
 const KLINE_MERGE_INTERVAL_MS = 500;
 
-/** 合约列表展示条数上限（避免长列表渲染卡顿） */
+/** 合约列表展示条数上限（避免长列表渲染卡顿）
+ *  须保持 ≤ Rust 侧 fetch_tickers 的 take(100) 上限，超出部分合约涨跌% 将静默缺失 */
 const SYMBOL_LIST_MAX = 60;
 
 /** 合约列表涨跌%轮询间隔（毫秒） */
@@ -281,7 +292,9 @@ export default function Home() {
                         {overview ? `${changeUp ? "+" : ""}${overview.changePercent.toFixed(2)}%` : "—"}
                     </span>
                     <span className="ycs-marketbar__extra">
-                        {overview ? `高 ${formatPrice(overview.high)} · 低 ${formatPrice(overview.low)} · 额 ${formatVolume(overview.quoteVolume)} USDT` : "—"}
+                        {overview
+                            ? `高 ${formatPrice(overview.high)} · 低 ${formatPrice(overview.low)} · 额 ${formatVolume(overview.quoteVolume)} USDT`
+                            : "—"}
                     </span>
                     <span className="ycs-marketbar__status">{statusText}</span>
                     <div className="ycs-marketbar__refresh">
