@@ -87,9 +87,9 @@ body,
     white-space: nowrap;
 }
 
-/* 浮盈为正：绿色 */
+/* 浮盈为正：绿色（与胶囊文字涨跌绿 .ycs-capsule--up 同色，避免同一胶囊两种绿并排） */
 .ycs-pnl--up {
-    color: #34d399;
+    color: #4ade80;
 }
 
 /* 浮盈为负：红色 */
