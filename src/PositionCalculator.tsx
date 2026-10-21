@@ -89,6 +89,20 @@ export default function PositionCalculator({ symbol, lastPrice, config, onConfig
         }
     }, []);
 
+    // 切换合约：清空全部输入态（表单/模拟/确认），避免上一合约残留值写入新合约仓位
+    useEffect(() => {
+        setForm(EMPTY_FORM);
+        setDirection("long");
+        setSimAction("add");
+        setSimPriceText("");
+        setSimQtyText("");
+        if (confirmTimerRef.current !== null) {
+            window.clearTimeout(confirmTimerRef.current);
+            confirmTimerRef.current = null;
+        }
+        setConfirming(false);
+    }, [symbol]);
+
     /** 当前合约的持久化仓位（无则右栏渲染新建表单） */
     const persistedPosition = config.positions.find((item) => item.symbol === symbol) ?? null;
 
@@ -136,7 +150,7 @@ export default function PositionCalculator({ symbol, lastPrice, config, onConfig
     const saveDraft = () => {
         const next: CapsuleConfig = {
             ...config,
-            positions: [...config.positions.filter((item) => item.symbol !== symbol), { ...draft, symbol, realizedPnl: 0 }]
+            positions: [...config.positions.filter((item) => item.symbol !== symbol), { ...draft }]
         };
         invoke("save_config", { config: next })
             .then(() => {
@@ -300,7 +314,7 @@ export default function PositionCalculator({ symbol, lastPrice, config, onConfig
                     )}
                 </div>
                 {closed ? (
-                    <div className={`ycs-poscard__row ${(persistedPosition.realizedPnl ?? 0) >= 0 ? "ycs-poscard__row--up" : "ycs-poscard__row--down"}`}>
+                    <div className={`ycs-poscard__row ${persistedPosition.realizedPnl >= 0 ? "ycs-poscard__row--up" : "ycs-poscard__row--down"}`}>
                         <span className="ycs-poscard__label">累计已实现盈亏</span>
                         <span className="ycs-poscard__value">
                             {persistedPosition.realizedPnl >= 0 ? "+" : ""}
