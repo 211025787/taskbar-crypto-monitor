@@ -124,3 +124,10 @@ export const KLINE_INTERVALS = ["1m", "5m", "15m", "1h", "4h", "1d"] as const;
 
 /** K 线周期类型（字面量联合） */
 export type KlineInterval = (typeof KLINE_INTERVALS)[number];
+/** 合约列表行情简报（fetch_tickers 命令返回元素） */
+export interface TickerBrief {
+    /** 合约名（如 BTCUSDT） */
+    symbol: string;
+    /** 24 小时涨跌幅（%，正值代表上涨） */
+    changePercent: number;
+}
