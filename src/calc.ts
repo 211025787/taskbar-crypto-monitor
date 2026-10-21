@@ -96,7 +96,9 @@ export function simulateAdjust(input: AdjustInput, lastPrice: number): AdjustRes
         direction: input.direction,
         entryPrice: input.entryPrice,
         leverage: input.leverage,
-        quantity: input.quantity
+        quantity: input.quantity,
+        // 该对象仅用于 isPositionValid 校验，累计已实现盈亏不影响校验行为，固定填 0
+        realizedPnl: 0
     };
     if (!isPositionValid(base) || !Number.isFinite(lastPrice) || lastPrice <= 0) {
         return null;
@@ -209,6 +211,7 @@ export function formatVolume(volume: number): string {
     }
     return volume.toFixed(2);
 }
+
 /** 把一次模拟结果合成为新仓位对象（"应用到仓位"的纯函数变换，便于单测）
  *
  * 加仓 = 均价/数量替换为模拟结果；减仓 = 数量替换 + 累计已实现盈亏叠加。

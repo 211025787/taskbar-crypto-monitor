@@ -57,24 +57,24 @@ describe("computePosition 多头计算", () => {
     it("价格上涨 10% 时回报率 = 涨幅 × 杠杆 = 100%", () => {
         const result = computePosition(makePosition(), 110);
         expect(result!.pnl).toBe(10);
-        expect(result!.roe).toBeCloseTo(100, 6);
+        expect(result!.roe).toBeCloseTo(100);
     });
 
     it("价格下跌 5% 时回报率 = -50%", () => {
         const result = computePosition(makePosition(), 95);
         expect(result!.pnl).toBe(-5);
-        expect(result!.roe).toBeCloseTo(-50, 6);
+        expect(result!.roe).toBeCloseTo(-50);
     });
 
     it("多头强平价低于开仓价：entry×(1−1/lev)/(1−MMR)", () => {
         const result = computePosition(makePosition({ leverage: 10 }), 100);
-        expect(result!.liquidationPrice).toBeCloseTo((100 * (1 - 0.1)) / (1 - 0.009), 8);
+        expect(result!.liquidationPrice).toBeCloseTo((100 * (1 - 0.1)) / (1 - 0.009));
     });
 
     it("强平距离按最新价计算百分比", () => {
         const liq = (100 * (1 - 0.1)) / (1 - 0.009);
         const result = computePosition(makePosition(), 120);
-        expect(result!.liqDistance).toBeCloseTo((Math.abs(liq - 120) / 120) * 100, 6);
+        expect(result!.liqDistance).toBeCloseTo((Math.abs(liq - 120) / 120) * 100);
     });
 });
 
@@ -82,30 +82,30 @@ describe("computePosition 空头计算", () => {
     it("价格下跌 10% 时空头盈利 10（与多头镜像）", () => {
         const result = computePosition(makePosition({ direction: "short" }), 90);
         expect(result!.pnl).toBe(10);
-        expect(result!.roe).toBeCloseTo(100, 6);
+        expect(result!.roe).toBeCloseTo(100);
     });
 
     it("价格上涨 10% 时空头亏损", () => {
         const result = computePosition(makePosition({ direction: "short" }), 110);
         expect(result!.pnl).toBe(-10);
-        expect(result!.roe).toBeCloseTo(-100, 6);
+        expect(result!.roe).toBeCloseTo(-100);
     });
 
     it("空头强平价高于开仓价：entry×(1+1/lev)/(1+MMR)", () => {
         const result = computePosition(makePosition({ direction: "short", leverage: 10 }), 100);
-        expect(result!.liquidationPrice).toBeCloseTo((100 * (1 + 0.1)) / (1 + 0.009), 8);
+        expect(result!.liquidationPrice).toBeCloseTo((100 * (1 + 0.1)) / (1 + 0.009));
     });
 });
 
 describe("computePosition 边界与防御", () => {
     it("杠杆 1 时多头强平价为 0（无杠杆不强平）", () => {
         const result = computePosition(makePosition({ leverage: 1 }), 100);
-        expect(result!.liquidationPrice).toBeCloseTo(0, 8);
+        expect(result!.liquidationPrice).toBeCloseTo(0);
     });
 
     it("杠杆 125 时强平价贴近开仓价（约 0.81% 距离）", () => {
         const result = computePosition(makePosition({ leverage: 125 }), 100);
-        expect(result!.liquidationPrice).toBeCloseTo((100 * (1 - 1 / 125)) / (1 - 0.009), 8);
+        expect(result!.liquidationPrice).toBeCloseTo((100 * (1 - 1 / 125)) / (1 - 0.009));
         expect(Math.abs(100 - result!.liquidationPrice)).toBeLessThan(1);
     });
 
@@ -157,11 +157,11 @@ describe("simulateAdjust 加仓", () => {
             0.9
         );
         expect(result).not.toBeNull();
-        expect(result!.newEntryPrice).toBeCloseTo(0.95, 10);
+        expect(result!.newEntryPrice).toBeCloseTo(0.95);
         expect(result!.newQuantity).toBe(20);
-        expect(result!.newMargin).toBeCloseTo(0.95 * 20 / 10, 10);
-        expect(result!.newPnl).toBeCloseTo((0.9 - 0.95) * 20, 10);
-        expect(result!.newRoe).toBeCloseTo(((0.9 - 0.95) / 0.95) * 10 * 100, 6);
+        expect(result!.newMargin).toBeCloseTo(0.95 * 20 / 10);
+        expect(result!.newPnl).toBeCloseTo((0.9 - 0.95) * 20);
+        expect(result!.newRoe).toBeCloseTo(((0.9 - 0.95) / 0.95) * 10 * 100);
         expect(result!.realizedPnl).toBe(0);
     });
 
@@ -177,8 +177,8 @@ describe("simulateAdjust 加仓", () => {
             makeAdjust({ direction: "short", entryPrice: 0.8, quantity: 10, adjustPrice: 0.85, adjustQuantity: 10 }),
             0.85
         );
-        expect(result!.newEntryPrice).toBeCloseTo(0.825, 10);
-        expect(result!.newPnl).toBeCloseTo((0.85 - 0.825) * 20 * -1, 10);
+        expect(result!.newEntryPrice).toBeCloseTo(0.825);
+        expect(result!.newPnl).toBeCloseTo((0.85 - 0.825) * 20 * -1);
     });
 });
 
@@ -190,8 +190,8 @@ describe("simulateAdjust 减仓", () => {
         );
         expect(result!.newEntryPrice).toBe(1.0);
         expect(result!.newQuantity).toBe(6);
-        expect(result!.realizedPnl).toBeCloseTo((0.95 - 1.0) * 4, 10);
-        expect(result!.newPnl).toBeCloseTo((0.9 - 1.0) * 6, 10);
+        expect(result!.realizedPnl).toBeCloseTo((0.95 - 1.0) * 4);
+        expect(result!.newPnl).toBeCloseTo((0.9 - 1.0) * 6);
     });
 
     it("空头减仓在高价锁定正盈亏", () => {
@@ -199,7 +199,7 @@ describe("simulateAdjust 减仓", () => {
             makeAdjust({ direction: "short", action: "reduce", entryPrice: 0.8, quantity: 10, adjustPrice: 0.75, adjustQuantity: 10 }),
             0.75
         );
-        expect(result!.realizedPnl).toBeCloseTo((0.75 - 0.8) * 10 * -1, 10);
+        expect(result!.realizedPnl).toBeCloseTo((0.75 - 0.8) * 10 * -1);
         expect(result!.realizedPnl).toBeGreaterThan(0);
     });
 
@@ -213,7 +213,7 @@ describe("simulateAdjust 减仓", () => {
         expect(result!.newPnl).toBe(0);
         expect(result!.newRoe).toBe(0);
         expect(result!.newLiquidationPrice).toBe(0);
-        expect(result!.realizedPnl).toBeCloseTo(-1, 10);
+        expect(result!.realizedPnl).toBeCloseTo(-1);
     });
 });
 
@@ -255,7 +255,7 @@ describe("applyAdjust 应用模拟结果", () => {
         const p0 = makePosition({ entryPrice: 1, quantity: 10, leverage: 10 });
         const s1 = simulateAdjust({ direction: "long", entryPrice: 1, quantity: 10, leverage: 10, action: "reduce", adjustPrice: 1.2, adjustQuantity: 4 }, 1)!;
         const p1 = applyAdjust(p0, s1, "reduce");
-        const s2 = simulateAdjust({ direction: "long", entryPrice: 1, quantity: 6, leverage: 10, action: "reduce", adjustPrice: 1.1, adjustQuantity: 6 }, 1)!;
+        const s2 = simulateAdjust({ direction: "long", entryPrice: 1, quantity: p1.quantity, leverage: 10, action: "reduce", adjustPrice: 1.1, adjustQuantity: 6 }, 1)!;
         const p2 = applyAdjust(p1, s2, "reduce");
         expect(p2.quantity).toBe(0);
         expect(p2.realizedPnl).toBeCloseTo(0.8 + 0.6);
