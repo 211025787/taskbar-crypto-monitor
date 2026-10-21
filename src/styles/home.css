@@ -65,6 +65,8 @@ body,
     background: var(--ycs-bg);
     /* 零滚动：超扁窗口尺寸即页面尺寸，溢出一律裁剪 */
     overflow: hidden;
+    /* 恢复文本可选中：抵消 capsule.css 全局 user-select: none 随合并包泄漏到首页的影响 */
+    user-select: text;
 }
 
 /* 噪点纹理层：静态 feTurbulence 颗粒，消除扁平矢量感（product 低透明度） */
@@ -298,7 +300,13 @@ body,
 .ycs-marketbar__status {
     color: var(--ycs-muted);
     font-size: 10px;
-    flex-shrink: 0;
+    /* 状态串（如重连错误详情）长度无上限：允许收缩 + 截断省略，避免挤掉右侧周期药丸 */
+    flex-shrink: 1;
+    min-width: 0;
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .ycs-marketbar__refresh {
@@ -695,7 +703,7 @@ body,
 /* ===== 加减仓模拟子面板 ===== */
 
 .ycs-sim {
-    margin-top: 16px;
+    /* 垂直间距由父级 .ycs-panel 的 gap: 8px 统一控制 */
     padding: 14px 16px;
     background: rgba(255, 255, 255, 0.02);
     border: 1px dashed var(--ycs-border-strong);
