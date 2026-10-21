@@ -114,6 +114,15 @@ async function main() {
     await sleep(1000);
 
     // ===== 1. 搜索过滤（程序化设值触发 React onChange，幂等） =====
+    // 先清空搜索框（上一套件可能残留过滤词导致 before 计数失真）
+    await evalOn(home, `(() => {
+        const input = document.querySelector(".ycs-home__search");
+        const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+        setter.call(input, "");
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        return true;
+    })()`);
+    await sleep(400);
     const before = await evalOn(home, `document.querySelectorAll(".ycs-home__symbol").length`);
     await evalOn(home, `(() => {
         const input = document.querySelector(".ycs-home__search");
