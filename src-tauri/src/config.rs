@@ -56,7 +56,7 @@ fn default_show_pnl() -> bool {
 }
 
 impl Default for CapsuleConfig {
-    /// 默认配置：BTCUSDT 主合约 + 四个字段全部显示，标准缩放，无仓位
+    /// 默认配置：BTCUSDT 主合约 + 五个字段全部显示（含胶囊盈亏），标准缩放，无仓位
     fn default() -> Self {
         Self {
             symbol: "BTCUSDT".to_string(),
