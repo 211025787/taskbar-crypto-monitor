@@ -79,6 +79,24 @@ body,
     white-space: nowrap;
 }
 
+/* 网络异常警示图标：黄色轻脉动（克制不扰民，行情恢复后随状态卸载） */
+.ycs-netwarn {
+    font-size: calc(11px * var(--ycs-scale, 1));
+    color: #f5ca55;
+    animation: ycs-netwarn-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes ycs-netwarn-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.55;
+    }
+}
+
 /* 持仓浮盈：字号/字重与涨跌幅字段对齐，等宽数字防止行情刷新时跳动（语义色独立于根元素涨跌状态） */
 .ycs-pnl {
     font-size: calc(12px * var(--ycs-scale, 1));

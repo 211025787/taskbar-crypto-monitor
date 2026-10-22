@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEve
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { computePosition } from "./calc";
-import { DEFAULT_CONFIG, type CapsuleConfig, type Position, type TickerData } from "./types";
+import { DEFAULT_CONFIG, type CapsuleConfig, type Position, type TickerData, type WsStatus } from "./types";
 import "./styles/capsule.css";
 
 /** 趋势数据点（当前由实时价格流构建，后续阶段接入 Binance Kline 历史数据拼接） */
@@ -59,6 +59,8 @@ export default function App() {
     const trendSymbolRef = useRef("");
     /** 内容隐藏开关：左键点击胶囊切换；隐藏时透明窗口仍在，点击即恢复显示 */
     const [hidden, setHidden] = useState(false);
+    /** 网络异常警示：行情流断开或轮询连续失败时置 true，收到行情自动复位 */
+    const [netWarning, setNetWarning] = useState(false);
 
     useEffect(() => {
         // 初始加载已保存配置（无存档时 Rust 侧返回默认值），并登记初始合约名
@@ -86,16 +88,23 @@ export default function App() {
                 return;
             }
             setTicker(event.payload);
+            // 收到行情即复位网络警示（与 ws-status 信号双保险，覆盖状态信号丢失的场景）
+            setNetWarning(false);
             setTrend((prev) => {
                 const next = [...prev, { t: Date.now(), p: event.payload.price }];
                 // 超出容量时丢弃最旧数据点，保持缓冲区有界
                 return next.length > TREND_MAX_POINTS ? next.slice(next.length - TREND_MAX_POINTS) : next;
             });
         });
+        // 行情流状态：reconnecting 视为网络异常（含轮询连续失败）；connected/polling 复位
+        const unlistenWs = listen<WsStatus>("ws-status", (event) => {
+            setNetWarning(event.payload.state === "reconnecting");
+        });
         // 组件卸载时取消事件订阅
         return () => {
             unlistenConfig.then((fn) => fn()).catch(() => undefined);
             unlistenTicker.then((fn) => fn()).catch(() => undefined);
+            unlistenWs.then((fn) => fn()).catch(() => undefined);
         };
     }, []);
 
@@ -171,6 +180,7 @@ export default function App() {
                             {polyline && <polyline className="ycs-sparkline__line" points={polyline} />}
                         </svg>
                     )}
+                    {netWarning && <span className="ycs-netwarn" title="当前网络异常">⚠</span>}
                 </>
             )}
         </div>

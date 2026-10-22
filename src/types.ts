@@ -135,3 +135,10 @@ export interface TickerBrief {
     /** 24 小时涨跌幅（%，正值代表上涨） */
     changePercent: number;
 }
+/** 行情流连接状态（Rust 端 ws-status 事件载荷） */
+export interface WsStatus {
+    /** 状态：connecting / connected / reconnecting / polling */
+    state: string;
+    /** 状态补充说明（如重连等待秒数、网络异常提示） */
+    detail: string;
+}
