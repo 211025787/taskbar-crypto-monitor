@@ -193,7 +193,7 @@ async fn run_polling(app: AppHandle, symbol: String, generation: u64) {
                 if consecutive_failures >= 3 {
                     let _ = app.emit(
                         "ws-status",
-                        WsStatus { state: "polling".to_string(), detail: "推送流不可用，已切换轮询模式".to_string() },
+                        WsStatus { state: "polling".to_string(), detail: "网络已恢复，回到轮询模式".to_string() },
                     );
                 }
                 consecutive_failures = 0;
