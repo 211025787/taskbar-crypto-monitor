@@ -1,12 +1,12 @@
 // 发布模式下隐藏控制台窗口（切换为 Windows GUI 子系统）
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-/// 需要默认注入的 WebView2 浏览器参数：禁用原生窗口遮挡计算。
+/// 需要默认注入的 WebView2 浏览器参数
 ///
-/// Chromium 的 Native Window Occlusion 在任务栏 z 序扰动瞬间会误判胶囊被遮挡而
-/// 暂停合成，表现为"整个胶囊空白一闪"（z 序看门狗 <1ms 恢复也救不了已提交的空帧）。
-/// 置顶胶囊几乎不会被真正遮挡，持续渲染开销可忽略。
-const REQUIRED_BROWSER_ARGS: &str = "--disable-features=CalculateNativeWinOcclusion";
+/// - 禁用原生窗口遮挡计算：任务栏 z 序扰动瞬间 Chromium 误判遮挡而暂停合成，造成整窗空白闪
+/// - 禁用 GPU 合成：Chromium GPU surface 在任务栏区域重绘时被波及重建（提交间隙空白一帧），
+///   胶囊为轻量文本软合成零压力；实测中央位置（不与任务栏重叠）不闪，锁定区域重绘波及路径
+const REQUIRED_BROWSER_ARGS: &str = "--disable-features=CalculateNativeWinOcclusion --disable-gpu-compositing";
 
 /// 在 WebView2 环境创建前合并浏览器参数（Loader 读取本进程环境变量）
 ///
