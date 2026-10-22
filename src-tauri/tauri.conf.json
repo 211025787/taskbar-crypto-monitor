@@ -35,7 +35,8 @@
                 "resizable": false,
                 "decorations": false,
                 "skipTaskbar": false,
-                "shadow": true
+                "shadow": true,
+                "backgroundColor": "#0f1626"
             },
             {
                 "label": "home",
@@ -49,7 +50,8 @@
                 "resizable": true,
                 "decorations": false,
                 "skipTaskbar": false,
-                "shadow": true
+                "shadow": true,
+                "backgroundColor": "#0a0e1a"
             }
         ],
         "security": {
