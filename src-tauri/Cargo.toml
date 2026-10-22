@@ -31,9 +31,11 @@ futures-util = "0.3"
 tokio = { version = "1", features = ["time"] }
 # Win32 API 绑定：仅用于任务栏几何探测与窗口定位（SetWindowPos 等）
 # Gdi：构造 HICON 所需的 DIB/位图接口（任务栏按钮大图标显式下发）
+# Accessibility：SetWinEventHook 事件驱动 Z 序看门狗（消除胶囊被任务栏压下的可见闪烁）
 windows-sys = { version = "0.59", features = [
     "Win32_Foundation",
     "Win32_UI_WindowsAndMessaging",
+    "Win32_UI_Accessibility",
     "Win32_Graphics_Gdi",
 ] }
 
