@@ -185,7 +185,6 @@ pub fn reassert_topmost(hwnd: HWND) {
     }
 }
 
-
 /// 上次 Z 序重断言事件处理的时间戳（毫秒，Unix 基准），用于去抖门槛比较
 static LAST_REASSERT_MS: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(0);
 
@@ -205,9 +204,9 @@ fn unix_time_ms() -> i64 {
 
 /// WinEvent 回调：前台切换 / Z 序重排事件驱动的即时重断言入口（FFI 系统调用约定）
 ///
-/// 主路径：SetWinEventHook 以 [EVENT_SYSTEM_FOREGROUND, EVENT_OBJECT_REORDER] 闭区间
-/// 监听系统事件，任务栏重新断言自身置顶把胶囊压下的瞬间即触发本回调，经 50ms
-/// 去抖后立即 reassert_topmost——取代旧版 1.2 秒轮询，消除窗口期内的可见闪烁。
+/// 主路径：两个精确单值事件钩子（EVENT_SYSTEM_FOREGROUND 与 EVENT_OBJECT_REORDER
+/// 各自收窄）监听系统事件，任务栏重新断言自身置顶把胶囊压下的瞬间即触发本回调，
+/// 经 50ms 去抖与 Z 序门控后立即 reassert_topmost——取代旧版 1.2 秒轮询，消除窗口期内的可见闪烁。
 unsafe extern "system" fn on_win_event(
     _hook: HWINEVENTHOOK,
     _event: u32,
@@ -227,13 +226,17 @@ unsafe extern "system" fn on_win_event(
         return;
     }
     LAST_REASSERT_MS.store(now, std::sync::atomic::Ordering::Relaxed);
-    reassert_topmost(capsule);
+    // 门控：仅当胶囊真被压到任务栏之下才重断言。FindWindowW + Z 序遍历为微秒级，
+    // 远廉于 SetWindowPos；同时切断 reassert 自身触发 REORDER 的自反馈震荡回路
+    if is_below_taskbar(capsule) {
+        reassert_topmost(capsule);
+    }
 }
 
 /// 兜底定时器回调：WinEvent 钩子静默失效场景下的低频周期检测（FFI 系统调用约定）
 ///
-/// WM_TIMER 消息由消息泵 DispatchMessageW 分发进入本回调（SetTimer 的 NULL-hwnd
-/// 形态下系统直接调用 TIMERPROC 而非投递窗口过程），语义与旧版轮询看门狗一致：
+/// WM_TIMER 入队时 lParam 携带 TIMERPROC，消息泵 DispatchMessageW 分发时识别调用
+/// （SetTimer 的 NULL-hwnd 形态），语义与旧版轮询看门狗一致：
 /// 仅当胶囊确实被压到任务栏之下才重断言，避免无谓的 SetWindowPos 抖动。
 unsafe extern "system" fn on_fallback_timer(_hwnd: HWND, _msg: u32, _timer_id: usize, _time: u32) {
     let capsule = CAPSULE_HWND.load(std::sync::atomic::Ordering::Relaxed) as HWND;
@@ -245,22 +248,31 @@ unsafe extern "system" fn on_fallback_timer(_hwnd: HWND, _msg: u32, _timer_id: u
     }
 }
 
-/// 启动 Z 序看门狗线程：事件驱动重断言 + 3 秒兜底 + 钩子失败退回轮询
+/// 启动 Z 序看门狗线程：事件驱动重断言 + 3 秒兜底 + 双钩子全失败才退回轮询
 ///
 /// 三层防线：
-/// 1. 主路径——SetWinEventHook 监听 [EVENT_SYSTEM_FOREGROUND, EVENT_OBJECT_REORDER]
-///    闭区间事件（前台切换 / Z 序重排），回调 50ms 去抖后即时重断言，消除旧版
+/// 1. 主路径——两个精确单值事件钩子（前台切换 / Z 序重排，各自收窄避免宽区间
+///    命中全部中间事件导致回调过载），回调 50ms 去抖 + Z 序门控后即时重断言，消除旧版
 ///    1.2 秒轮询窗口期内"点击任务栏图标 → 胶囊被压下 → 最长 1.2 秒后捞回"的可见闪烁；
 /// 2. 兜底——3 秒 SetTimer 周期检测，覆盖钩子静默失效场景；
-/// 3. 退路——钩子安装失败时回退旧版 1.2 秒 sleep 轮询循环，行为不劣化。
+/// 3. 退路——两个钩子全部安装失败时回退旧版 1.2 秒 sleep 轮询循环，行为不劣化。
 pub fn spawn_zorder_watchdog(hwnd: HWND) {
     // 以 usize 形式跨线程共享窗口句柄供 FFI 回调读取；规避裸指针的非 Send 限制
     CAPSULE_HWND.store(hwnd as usize, std::sync::atomic::Ordering::Relaxed);
     // 闭包不捕获裸指针句柄：线程内一律经 CAPSULE_HWND 原子读取
     std::thread::spawn(|| unsafe {
-        // 事件范围为闭区间 [min, max]：前台切换(3) 起、Z 序重排(0x8004) 止
-        let hook = SetWinEventHook(
+        // 双钩子各自收窄到精确事件值：单钩子 [3, 0x8004] 闭区间会命中全部 SYSTEM_*/CREATE/DESTROY 等中间事件，密集 UI 下回调过载
+        let foreground_hook = SetWinEventHook(
             EVENT_SYSTEM_FOREGROUND,
+            EVENT_SYSTEM_FOREGROUND,
+            std::ptr::null_mut(),
+            Some(on_win_event),
+            0,
+            0,
+            WINEVENT_OUTOFCONTEXT,
+        );
+        let reorder_hook = SetWinEventHook(
+            EVENT_OBJECT_REORDER,
             EVENT_OBJECT_REORDER,
             std::ptr::null_mut(),
             Some(on_win_event),
@@ -268,8 +280,14 @@ pub fn spawn_zorder_watchdog(hwnd: HWND) {
             0,
             WINEVENT_OUTOFCONTEXT,
         );
-        // 钩子句柄无效即安装失败：退回旧版 1.2 秒 sleep 轮询，兜底行为不劣化
-        if hook.is_null() {
+        // 任一钩子失败仅打日志不退回（另一钩子仍承载主路径）；双失败才退回 1.2 秒 sleep 轮询
+        if foreground_hook.is_null() {
+            println!("[taskbar] 前台切换事件钩子安装失败，主路径由 Z 序重排钩子单独承载");
+        }
+        if reorder_hook.is_null() {
+            println!("[taskbar] Z 序重排事件钩子安装失败，主路径由前台切换钩子单独承载");
+        }
+        if foreground_hook.is_null() && reorder_hook.is_null() {
             let capsule = CAPSULE_HWND.load(std::sync::atomic::Ordering::Relaxed) as HWND;
             loop {
                 std::thread::sleep(std::time::Duration::from_millis(1200));
@@ -298,7 +316,12 @@ pub fn spawn_zorder_watchdog(hwnd: HWND) {
             TranslateMessage(&msg);
             DispatchMessageW(&msg);
         }
-        // 消息泵退出后卸载事件钩子，避免回调悬挂于已死线程
-        UnhookWinEvent(hook);
+        // 消息泵退出后卸载所有安装成功的事件钩子，避免回调悬挂于已死线程
+        if !foreground_hook.is_null() {
+            UnhookWinEvent(foreground_hook);
+        }
+        if !reorder_hook.is_null() {
+            UnhookWinEvent(reorder_hook);
+        }
     });
 }
