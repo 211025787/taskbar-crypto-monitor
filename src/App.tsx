@@ -96,9 +96,15 @@ export default function App() {
                 return next.length > TREND_MAX_POINTS ? next.slice(next.length - TREND_MAX_POINTS) : next;
             });
         });
-        // 行情流状态：reconnecting 视为网络异常（含轮询连续失败）；connected/polling 复位
+        // 行情流状态：reconnecting 置警示（含轮询连续失败）；connected/polling 复位；
+        // connecting 保持上一态——断网时重连循环在 connecting↔reconnecting 间振荡，若把 connecting 当正常态复位会导致警示闪烁
         const unlistenWs = listen<WsStatus>("ws-status", (event) => {
-            setNetWarning(event.payload.state === "reconnecting");
+            const state = event.payload.state;
+            if (state === "reconnecting") {
+                setNetWarning(true);
+            } else if (state === "connected" || state === "polling") {
+                setNetWarning(false);
+            }
         });
         // 组件卸载时取消事件订阅
         return () => {
