@@ -185,28 +185,20 @@ pub fn reassert_topmost(hwnd: HWND) {
     }
 }
 
-/// 上次 Z 序重断言事件处理的时间戳（毫秒，Unix 基准），用于去抖门槛比较
-static LAST_REASSERT_MS: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(0);
-
 /// 胶囊窗口句柄的线程共享（看门狗 FFI 回调读取；usize 规避裸指针非 Send）
 static CAPSULE_HWND: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
 
 /// 兜底定时器周期（毫秒）：钩子失效场景下的低频周期检测
 const WATCHDOG_FALLBACK_MS: u32 = 3000;
 
-/// WinEvent 回调去抖间隔（毫秒）：合并任务栏重排伴随密集连发的多个事件
-const WIN_EVENT_DEBOUNCE_MS: i64 = 50;
-
-/// 当前 Unix 时间戳（毫秒），作为去抖门槛的比较基准
-fn unix_time_ms() -> i64 {
-    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as i64).unwrap_or(0)
-}
-
 /// WinEvent 回调：前台切换 / Z 序重排事件驱动的即时重断言入口（FFI 系统调用约定）
 ///
 /// 主路径：两个精确单值事件钩子（EVENT_SYSTEM_FOREGROUND 与 EVENT_OBJECT_REORDER
-/// 各自收窄）监听系统事件，任务栏重新断言自身置顶把胶囊压下的瞬间即触发本回调，
-/// 经 50ms 去抖与 Z 序门控后立即 reassert_topmost——取代旧版 1.2 秒轮询，消除窗口期内的可见闪烁。
+/// 各自收窄）监听系统事件，任务栏重新断言自身置顶把胶囊压下的瞬间即触发本回调。
+/// 不做时间去抖：任务栏动画期间事件连发，若后续压制事件落入去抖窗口内被丢弃，
+/// 被压时长会从 1 帧拉长到 50-100ms（用户可感知的"闪一下"）；
+/// 防风暴与自反馈震荡完全由 is_below_taskbar 门控承担（reassert 后胶囊在上，
+/// 自身触发的 REORDER 事件检查不通过即不动作）。
 unsafe extern "system" fn on_win_event(
     _hook: HWINEVENTHOOK,
     _event: u32,
@@ -220,12 +212,6 @@ unsafe extern "system" fn on_win_event(
     if capsule.is_null() {
         return;
     }
-    let now = unix_time_ms();
-    // 50ms 去抖：任务栏重排通常伴随多个事件连发，合并为一次重断言避免抖动
-    if now - LAST_REASSERT_MS.load(std::sync::atomic::Ordering::Relaxed) < WIN_EVENT_DEBOUNCE_MS {
-        return;
-    }
-    LAST_REASSERT_MS.store(now, std::sync::atomic::Ordering::Relaxed);
     // 门控：仅当胶囊真被压到任务栏之下才重断言。FindWindowW + Z 序遍历为微秒级，
     // 远廉于 SetWindowPos；同时切断 reassert 自身触发 REORDER 的自反馈震荡回路
     if is_below_taskbar(capsule) {
