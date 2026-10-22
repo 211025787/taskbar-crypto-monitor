@@ -87,6 +87,7 @@ async fn run_stream(app: AppHandle, symbol: String, generation: u64) {
         match connect_async(ws_url.as_str()).await {
             Ok((ws, _)) => {
                 println!("[market] WebSocket 已连接: {symbol}");
+                let _ = app.emit("ws-status", WsStatus { state: "connected".to_string(), detail: String::new() });
                 let (mut write, mut read) = ws.split();
                 // 是否已收到首条推送（未收到前每条读取都带超时，用于识别假活流）
                 let mut first_received = false;
@@ -166,12 +167,16 @@ async fn run_stream(app: AppHandle, symbol: String, generation: u64) {
 /// REST 轮询模式：按固定间隔拉取 24hr ticker 并广播，直到订阅过期
 ///
 /// 适用于推送流不可用的网络环境（数据可用性与 WS 等价，延迟略高）。
+/// 连续失败 3 次（约 4.5 秒无数据）广播 reconnecting 异常态，前端据此显示网络警示；
+/// 恢复成功后广播 polling 复位。
 async fn run_polling(app: AppHandle, symbol: String, generation: u64) {
     println!("[market] 进入 REST 轮询模式: {symbol}");
     let _ = app.emit(
         "ws-status",
         WsStatus { state: "polling".to_string(), detail: "推送流不可用，已切换轮询模式".to_string() },
     );
+    // 连续失败计数：达到阈值（3）广播一次异常态；恢复成功后归零
+    let mut consecutive_failures: u32 = 0;
     loop {
         // 订阅已被更新取代：退出轮询
         if SUBSCRIPTION.load(Ordering::SeqCst) != generation {
@@ -184,10 +189,26 @@ async fn run_polling(app: AppHandle, symbol: String, generation: u64) {
         match result {
             Ok(Ok(ticker)) => {
                 let _ = app.emit("ticker-update", &ticker);
+                // 此前处于异常广播态：恢复成功，复位轮询状态供前端撤销警示
+                if consecutive_failures >= 3 {
+                    let _ = app.emit(
+                        "ws-status",
+                        WsStatus { state: "polling".to_string(), detail: "推送流不可用，已切换轮询模式".to_string() },
+                    );
+                }
+                consecutive_failures = 0;
             }
             // 单次拉取失败（网络抖动等）：静默跳过，下一轮重试
             Ok(Err(e)) => {
                 println!("[market] REST 轮询失败: {e}");
+                consecutive_failures += 1;
+                // 连续 3 次失败（约 4.5s 无数据）：广播网络异常，前端显示警示
+                if consecutive_failures == 3 {
+                    let _ = app.emit(
+                        "ws-status",
+                        WsStatus { state: "reconnecting".to_string(), detail: "轮询失败，网络异常".to_string() },
+                    );
+                }
             }
             Err(e) => {
                 println!("[market] REST 轮询任务异常: {e}");
