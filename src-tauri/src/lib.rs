@@ -110,17 +110,22 @@ fn fetch_online_symbols() -> Result<Vec<SymbolInfo>, String> {
 }
 
 /// 查询可选合约列表：优先在线拉取（成功后缓存），失败回退内置列表
+///
+/// async + spawn_blocking：ureq 为同步客户端，断网时阻塞至 5s 超时，
+/// 必须放阻塞线程池避免占用主线程（曾致断网时窗口无响应）。
 #[tauri::command]
-fn fetch_symbols() -> SymbolList {
+async fn fetch_symbols() -> Result<SymbolList, String> {
     if let Some(cached) = ONLINE_SYMBOLS.get() {
-        return SymbolList { symbols: cached.clone(), source: "online".to_string() };
+        return Ok(SymbolList { symbols: cached.clone(), source: "online".to_string() });
     }
-    match fetch_online_symbols() {
+    // 在线拉取放阻塞线程池（DNS/TCP 失败会等满超时）
+    let fetched = tauri::async_runtime::spawn_blocking(fetch_online_symbols).await.map_err(|e| format!("后台任务异常: {e}"))?;
+    match fetched {
         Ok(list) => {
             let _ = ONLINE_SYMBOLS.set(list.clone());
-            SymbolList { symbols: list, source: "online".to_string() }
+            Ok(SymbolList { symbols: list, source: "online".to_string() })
         }
-        Err(_) => SymbolList { symbols: builtin_symbols(), source: "builtin".to_string() },
+        Err(_) => Ok(SymbolList { symbols: builtin_symbols(), source: "builtin".to_string() }),
     }
 }
 

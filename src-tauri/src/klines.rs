@@ -161,13 +161,20 @@ fn parse_rest_kline(symbol: &str, item: &Value) -> Option<Kline> {
 }
 
 /// 拉取历史 K 线的 Tauri 命令（首屏数据；limit 钳制 1 ~ 1000）
+///
+/// async + spawn_blocking：ureq 为同步客户端，断网时阻塞至 8s 超时，
+/// 必须放阻塞线程池避免占用主线程（曾致断网时窗口无响应）。
 #[tauri::command]
-pub fn fetch_klines(symbol: String, interval: String, limit: u32) -> Result<Vec<Kline>, String> {
+pub async fn fetch_klines(symbol: String, interval: String, limit: u32) -> Result<Vec<Kline>, String> {
     if !valid_interval(&interval) {
         return Err(format!("不支持的周期: {interval}"));
     }
     let limit = limit.clamp(1, 1000);
-    fetch_rest_klines(&symbol, &interval, limit)
+    // 参数校验后放阻塞线程池拉取
+    let result = tauri::async_runtime::spawn_blocking(move || fetch_rest_klines(&symbol, &interval, limit))
+        .await
+        .map_err(|e| format!("后台任务异常: {e}"))?;
+    result
 }
 
 /// 切换 K 线实时流订阅（symbol 或 interval 变化时重连；相同则跳过）
@@ -285,9 +292,8 @@ fn parse_kline_message(text: &str) -> Option<Kline> {
     })
 }
 
-/// 拉取 24h 行情概览的 Tauri 命令（首页头部轮询调用）
-#[tauri::command]
-pub fn fetch_overview(symbol: String) -> Result<OverviewData, String> {
+/// 拉取 24h 行情概览（REST ticker/24hr 的阻塞实现，供 spawn_blocking 调用）
+fn fetch_overview_blocking(symbol: &str) -> Result<OverviewData, String> {
     let url = format!("https://fapi.binance.com/fapi/v1/ticker/24hr?symbol={symbol}");
     let resp: Value = rest_agent()
         .get(&url)
@@ -307,6 +313,18 @@ pub fn fetch_overview(symbol: String) -> Result<OverviewData, String> {
     })
 }
 
+/// 拉取 24h 行情概览的 Tauri 命令（首页头部轮询调用）
+///
+/// async + spawn_blocking：ureq 为同步客户端，断网时阻塞至 8s 超时，
+/// 必须放阻塞线程池避免占用主线程（曾致断网时窗口无响应）。
+#[tauri::command]
+pub async fn fetch_overview(symbol: String) -> Result<OverviewData, String> {
+    let result = tauri::async_runtime::spawn_blocking(move || fetch_overview_blocking(&symbol))
+        .await
+        .map_err(|e| format!("后台任务异常: {e}"))?;
+    result
+}
+
 /// 合约行情简报（列表涨跌%批量查询用）
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -317,11 +335,10 @@ pub struct TickerBrief {
     pub change_percent: f64,
 }
 
-/// 批量拉取合约 24h 涨跌幅（首页合约列表 10s 轮询调用）
+/// 批量拉取合约 24h 涨跌幅的阻塞实现（供 spawn_blocking 调用）
 ///
 /// Binance 接口：GET /fapi/v1/ticker/24hr?symbols=["A","B",...]（单次上限 100）
-#[tauri::command]
-pub fn fetch_tickers(symbols: Vec<String>) -> Result<Vec<TickerBrief>, String> {
+fn fetch_tickers_blocking(symbols: Vec<String>) -> Result<Vec<TickerBrief>, String> {
     // 上限保护：超出部分截断，避免 URL 过长被网关拒绝
     let symbols: Vec<String> = symbols.into_iter().take(100).collect();
     if symbols.is_empty() {
@@ -343,4 +360,16 @@ pub fn fetch_tickers(symbols: Vec<String>) -> Result<Vec<TickerBrief>, String> {
         });
     }
     Ok(list)
+}
+
+/// 批量拉取合约 24h 涨跌幅的 Tauri 命令（首页合约列表 10s 轮询调用）
+///
+/// async + spawn_blocking：ureq 为同步客户端，断网时阻塞至 8s 超时，
+/// 必须放阻塞线程池避免占用主线程（曾致断网时窗口无响应）。
+#[tauri::command]
+pub async fn fetch_tickers(symbols: Vec<String>) -> Result<Vec<TickerBrief>, String> {
+    let result = tauri::async_runtime::spawn_blocking(move || fetch_tickers_blocking(symbols))
+        .await
+        .map_err(|e| format!("后台任务异常: {e}"))?;
+    result
 }
